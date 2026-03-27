@@ -1,0 +1,42 @@
+[project]
+name = "trading-platform"
+version = "0.1.0"
+description = "AI-Powered Trading Platform for Indian Markets"
+requires-python = ">=3.11"
+license = {text = "Proprietary"}
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.flake8]
+max-line-length = 100
+exclude = [".venv", "__pycache__", "node_modules", ".git"]
+extend-ignore = ["E203", "W503"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests", "tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short --cov=backend/app --cov-report=term-missing --cov-report=html"
+
+[tool.coverage.run]
+source = ["backend/app"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.",
+    "raise NotImplementedError",
+]

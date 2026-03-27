@@ -1,0 +1,16 @@
+[package]
+name = "proprietary_hft_rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["AI Trading Platform Core Engineering"]
+description = "High-Frequency Trading Message Bus and Order Management System"
+
+[lib]
+name = "proprietary_hft_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }
+tokio = { version = "1.35", features = ["full"] }
+crossbeam-channel = "0.5"
+log = "0.4"

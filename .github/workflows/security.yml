@@ -1,0 +1,43 @@
+name: Security & SAST Audit
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  sast-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit
+        pip install -r backend/requirements.txt || echo "Requirements non-fatal for Bandit"
+
+    - name: Dependency Vulnerability Scan (Safety)
+      run: |
+        echo "=== RUNNING SAFETY PIPELINE ==="
+        safety check --full-report
+
+    - name: Static Analysis Security Testing (Bandit)
+      run: |
+        echo "=== RUNNING BANDIT SAST PIPELINE ==="
+        # Run Bandit over backend and core folders, failing on high severity
+        bandit -r backend/ core/ brokers/ data/ ai_agent/ -ll -ii
+
+    - name: Upload Security Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-audit-report
+        path: |
+          ./**/*.log

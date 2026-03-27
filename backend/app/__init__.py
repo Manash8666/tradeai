@@ -1,0 +1,3 @@
+"""
+Trading Platform — App Package
+"""
