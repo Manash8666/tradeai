@@ -88,6 +88,23 @@ npm install && npm run dev
 
 ---
 
+## ⚖️ Institutional Analysis: Pros & Cons
+
+To provide a non-biased perspective for institutional stakeholders, here is a technical breakdown of the platform's current market positioning:
+
+### ✅ Pros (Strengths)
+*   **Regulatory First-Soverign**: Unlike generic open-source bots, this platform was built *around* the SEBI 2026 mandates. The HITL (Human-In-The-Loop) requirement is not a feature; it is a structural defense against legal liability.
+*   **Dual-Engine Architecture**: Separating the "Reasoning" (Python/LLM) from the "Execution" (Rust/PyO3) allows for high-intelligence strategies that still hit sub-millisecond fill rates.
+*   **Psychological Edge**: The "Greed Circuit Breaker" solves the most common failure point in retail and professional trading—emotional revenge trading—at the protocol level.
+*   **Audit-Proof Transparency**: By using ClickHouse to hash-anchor every LLM reasoning step, the platform provides a level of explainability required by Tier-1 financial auditors.
+
+### ⚠️ Cons (Limitations)
+*   **Hardware Intensity**: Running a 5-layer multi-agent swarm with 120B-parameter models requires significant GPU overhead or high-tier API subscriptions (OpenRouter/Nvidia).
+*   **Connectivity Dependency**: The platform's logic depends heavily on external LLM inference providers. While fallback models are locally integrated, "Zero-Day" outages in reasoning providers could slow down macro-rotations.
+*   **Institutional Friction**: The SEBI-mandated 1-Touch execution intentionally adds "human latency." While safer, it prevents 100% autonomous high-frequency arbitrage that is allowed in less regulated markets.
+
+---
+
 ## ⭐ Why Star This Repo?
 
 If you are a quant, a developer, or a trader navigating the Indian markets, this codebase is a goldmine of advanced system architecture:
