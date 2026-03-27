@@ -38,7 +38,9 @@ class PortfolioManager:
 
         logger.info("⚡ PortfolioManager Orchestrator Base Online.")
 
-    async def run_orchestration_cycle(self, positions: List[Position], candidates: List[Position], headlines: Dict[str, List[str]]) -> Dict[str, Any]:
+    async def run_orchestration_cycle(
+        self, positions: List[Position], candidates: List[Position], headlines: Dict[str, List[str]]
+    ) -> Dict[str, Any]:
         """
         Executes a full top-down macro-to-micro orchestration cycle.
         Called e.g., daily at open/close or intraday on massive volatility spikes.
@@ -51,7 +53,7 @@ class PortfolioManager:
         # ------------------------------------------------------------------
         macros = await self.yfinance.fetch_macro_snapshot()
         report["global_macros"] = macros
-        
+
         causal_insights = self.causality.run_causality_check(macros)
         report["causality_insights"] = causal_insights
 
@@ -64,7 +66,7 @@ class PortfolioManager:
             "equity": allocation.equity_pct,
             "debt": allocation.debt_pct,
             "gold": allocation.gold_pct,
-            "reason": allocation.reason
+            "reason": allocation.reason,
         }
 
         # ------------------------------------------------------------------
@@ -73,10 +75,12 @@ class PortfolioManager:
         sentiment_updates = {}
         for pos in positions:
             if headlines.get(pos.ticker):
-                score_obj = await self.sentiment.analyze_headlines(pos.ticker, headlines[pos.ticker])
+                score_obj = await self.sentiment.analyze_headlines(
+                    pos.ticker, headlines[pos.ticker]
+                )
                 pos.sentiment_score = score_obj.score  # Update the live position object
                 sentiment_updates[pos.ticker] = {"score": score_obj.score, "label": score_obj.label}
-        
+
         report["sentiment_updates"] = sentiment_updates
 
         # ------------------------------------------------------------------
@@ -84,7 +88,10 @@ class PortfolioManager:
         # ------------------------------------------------------------------
         # Healer scans the dynamically updated Sentiment scores
         recovery_actions = self.healer.evaluate_portfolio(positions, candidates)
-        report["healer_rotations"] = [{"sell": a.ticker_to_sell, "buy": a.ticker_to_buy, "reason": a.reasoning} for a in recovery_actions]
+        report["healer_rotations"] = [
+            {"sell": a.ticker_to_sell, "buy": a.ticker_to_buy, "reason": a.reasoning}
+            for a in recovery_actions
+        ]
 
         # ------------------------------------------------------------------
         # STEP 5: PPO / RL Sizing Prediction (Stub)

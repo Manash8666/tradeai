@@ -10,6 +10,7 @@ from abc import abstractmethod
 from nautilus_trader.model.data.quote import QuoteTick
 from nautilus_trader.trading.strategy import Strategy
 
+
 class BaseStrategy(Strategy):
     """Core Strategy extension mapping to standard conventions."""
 

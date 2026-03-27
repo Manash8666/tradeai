@@ -35,18 +35,20 @@ logger = logging.getLogger(__name__)
 # Output type
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class TradeRecommendation:
     """
     Structured output from the two-turn Nemotron reasoning chain.
     Serialisable to JSON for the API response and audit log.
     """
+
     ticker: str
-    signal: str                   # "BUY" | "SELL" | "HOLD"
-    confidence: float             # 0.0 – 1.0
-    swarm_consensus: str          # Raw vote from AutonomousSwarmOrchestrator
+    signal: str  # "BUY" | "SELL" | "HOLD"
+    confidence: float  # 0.0 – 1.0
+    swarm_consensus: str  # Raw vote from AutonomousSwarmOrchestrator
     swarm_confidence: float
-    llm_rationale: str            # Final answer text from Turn 2
+    llm_rationale: str  # Final answer text from Turn 2
     reasoning_tokens: int = 0
     turn1_reasoning_tokens: int = 0
     agent_logs: list[str] = field(default_factory=list)
@@ -130,8 +132,7 @@ class NemotronReasoningOrchestrator:
             f"Market Data: {market_data}\n"
             f"Swarm Consensus: {swarm_result['consensus']} "
             f"(confidence={swarm_result['swarm_confidence']:.4f})\n"
-            f"Agent Logs:\n"
-            + "\n".join(f"  {log}" for log in swarm_result["agent_logs"])
+            f"Agent Logs:\n" + "\n".join(f"  {log}" for log in swarm_result["agent_logs"])
         )
 
         turn1_user_content = (
@@ -208,6 +209,7 @@ class NemotronReasoningOrchestrator:
 # Helper — parse the JSON signal block from LLM output
 # ---------------------------------------------------------------------------
 
+
 def _extract_signal_json(
     text: str,
     fallback_signal: str = "HOLD",
@@ -230,7 +232,7 @@ def _extract_signal_json(
         match = re.search(r'\{\s*"signal"\s*:', text, re.DOTALL)
         if match:
             # Try to find closing brace
-            candidate = text[match.start():]
+            candidate = text[match.start() :]
             try:
                 data = json.loads(candidate[: candidate.index("}") + 1])
                 return _validated(data, fallback_signal, fallback_confidence)

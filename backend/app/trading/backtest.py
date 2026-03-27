@@ -31,15 +31,12 @@ class BacktestRequest(BaseModel):
 
 @router.post("/run")
 async def run_backtest_simulation(
-    req: BacktestRequest,
-    current_user: User = Depends(get_current_active_user)
+    req: BacktestRequest, current_user: User = Depends(get_current_active_user)
 ):
     """
     Trigger a historical backtest execution via NautilusTrader.
     Currently heavily mocked for Phase 2 validation, returns dummy equity curves.
     """
     return backtester.run_backtest(
-        symbol=req.symbol,
-        start_date=req.start_date,
-        end_date=req.end_date
+        symbol=req.symbol, start_date=req.start_date, end_date=req.end_date
     )

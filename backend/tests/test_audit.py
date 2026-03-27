@@ -42,9 +42,7 @@ async def test_audit_log_captures_user_id(
     """Test that audit logs capture the authenticated user's ID."""
     await authenticated_client.get("/auth/me")
 
-    result = await db_session.execute(
-        select(AuditLog).where(AuditLog.resource == "/auth/me")
-    )
+    result = await db_session.execute(select(AuditLog).where(AuditLog.resource == "/auth/me"))
     logs = result.scalars().all()
     assert len(logs) >= 1
     # User ID should be captured for authenticated requests
@@ -59,9 +57,7 @@ async def test_health_not_audited(
     """Test that /health requests are NOT logged (skip path)."""
     await client.get("/health")
 
-    result = await db_session.execute(
-        select(AuditLog).where(AuditLog.resource == "/health")
-    )
+    result = await db_session.execute(select(AuditLog).where(AuditLog.resource == "/health"))
     logs = result.scalars().all()
     assert len(logs) == 0
 
@@ -74,9 +70,7 @@ async def test_audit_log_has_required_fields(
     """Test that audit log entries have all SEBI-required fields."""
     await client.get("/")
 
-    result = await db_session.execute(
-        select(AuditLog).where(AuditLog.resource == "/")
-    )
+    result = await db_session.execute(select(AuditLog).where(AuditLog.resource == "/"))
     logs = result.scalars().all()
     assert len(logs) >= 1
 

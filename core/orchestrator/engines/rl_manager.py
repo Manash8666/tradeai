@@ -31,18 +31,18 @@ class RLManager:
             return current_price * 0.98
 
         # Calculate True Range natively
-        high_low = df['High'] - df['Low']
-        high_close = (df['High'] - df['Close'].shift()).abs()
-        low_close = (df['Low'] - df['Close'].shift()).abs()
-        
+        high_low = df["High"] - df["Low"]
+        high_close = (df["High"] - df["Close"].shift()).abs()
+        low_close = (df["Low"] - df["Close"].shift()).abs()
+
         tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
-        
+
         # Calculate ATR(14) using exponential moving average
-        atr = tr.ewm(alpha=1/14, min_periods=14, adjust=False).mean()
-        
+        atr = tr.ewm(alpha=1 / 14, min_periods=14, adjust=False).mean()
+
         current_atr = float(atr.iloc[-1])
         stop_level = current_price - (current_atr * self.atr_multiplier)
-        
+
         logger.debug("Calculated Trailing Stop: %.2f (ATR=%.2f)", stop_level, current_atr)
         return stop_level
 

@@ -12,8 +12,9 @@ from alembic import context
 # Add project root to sys.path so we can import our backend modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
-from backend.app.config import get_settings
-from backend.app.database import Base
+from backend.app.config import get_settings  # noqa: E402
+from backend.app.database import Base  # noqa: E402
+
 # Import all models here so Alembic can discover them
 import backend.app.models  # noqa
 
@@ -30,6 +31,7 @@ settings = get_settings()
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
 target_metadata = Base.metadata
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

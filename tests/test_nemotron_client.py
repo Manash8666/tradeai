@@ -29,6 +29,7 @@ from ai_agent.reasoning_orchestrator import (
 # Helpers — build fake OpenAI response objects
 # ---------------------------------------------------------------------------
 
+
 def _make_openai_response(
     content: str,
     reasoning_details: list | None = None,
@@ -59,6 +60,7 @@ def _make_openai_response(
 # 1. NemotronClient instantiation
 # ---------------------------------------------------------------------------
 
+
 class TestNemotronClientInstantiation(unittest.TestCase):
 
     def test_raises_on_empty_api_key(self):
@@ -73,6 +75,7 @@ class TestNemotronClientInstantiation(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 2. LLMResponse parsing
 # ---------------------------------------------------------------------------
+
 
 class TestLLMResponseParsing(unittest.TestCase):
 
@@ -98,6 +101,7 @@ class TestLLMResponseParsing(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 3. Signal JSON extraction
 # ---------------------------------------------------------------------------
+
 
 class TestExtractSignalJson(unittest.TestCase):
 
@@ -135,6 +139,7 @@ class TestExtractSignalJson(unittest.TestCase):
 # 4. NemotronClient.ask_with_reasoning (mocked)
 # ---------------------------------------------------------------------------
 
+
 class TestNemotronClientAskWithReasoning(unittest.IsolatedAsyncioTestCase):
 
     async def test_ask_with_reasoning_returns_llm_response(self):
@@ -147,9 +152,9 @@ class TestNemotronClientAskWithReasoning(unittest.IsolatedAsyncioTestCase):
         client._client = MagicMock()
         client._client.chat.completions.create = AsyncMock(return_value=fake_resp)
 
-        result = await client.ask_with_reasoning([
-            LLMMessage(role="user", content="Should I buy NIFTY?")
-        ])
+        result = await client.ask_with_reasoning(
+            [LLMMessage(role="user", content="Should I buy NIFTY?")]
+        )
 
         self.assertIsInstance(result, LLMResponse)
         self.assertEqual(result.reasoning_tokens, 55)
@@ -159,6 +164,7 @@ class TestNemotronClientAskWithReasoning(unittest.IsolatedAsyncioTestCase):
 # ---------------------------------------------------------------------------
 # 5. NemotronReasoningOrchestrator.analyze_trade_setup (mocked, 2-turn)
 # ---------------------------------------------------------------------------
+
 
 class TestNemotronReasoningOrchestrator(unittest.IsolatedAsyncioTestCase):
 
@@ -178,9 +184,7 @@ class TestNemotronReasoningOrchestrator(unittest.IsolatedAsyncioTestCase):
         client = NemotronClient(api_key="sk-test")
         client._client = MagicMock()
         # First call → Turn 1, second call → Turn 2
-        client._client.chat.completions.create = AsyncMock(
-            side_effect=[resp1, resp2]
-        )
+        client._client.chat.completions.create = AsyncMock(side_effect=[resp1, resp2])
 
         orchestrator = NemotronReasoningOrchestrator(llm_client=client)
         rec = await orchestrator.analyze_trade_setup(
@@ -223,11 +227,13 @@ class TestNemotronReasoningOrchestrator(unittest.IsolatedAsyncioTestCase):
 # 6. FastAPI endpoint — structural test (no real HTTP, no real LLM)
 # ---------------------------------------------------------------------------
 
+
 class TestAnalyzeEndpoint(unittest.TestCase):
 
     def test_endpoint_registered(self):
         """Verify the router can be imported and the route is declared."""
         from ai_agent.router import router
+
         paths = [r.path for r in router.routes]
         self.assertIn("/ai/analyze", paths, "POST /ai/analyze must be registered.")
 

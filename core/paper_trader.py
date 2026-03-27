@@ -44,23 +44,23 @@ class PaperBroker(BrokerAdapter):
         algo_id: str | None = None,
     ) -> Dict[str, Any]:
         """Process local order and publish filled status to the message bus immediately."""
-        
+
         if not self.is_connected:
             raise ConnectionError("Make sure to connect() PaperBroker first.")
 
         order_id = f"MOCK_{uuid4().hex[:8].upper()}"
         assumed_price = price if price > 0 else 1000.0
-        
+
         # Risk Management Pipeline Check
         current_pos = self._positions.get(symbol, {"qty": 0, "avg_price": 0.0})
         current_exposure = current_pos["qty"] * current_pos["avg_price"]
-        
+
         risk_manager.validate_pre_trade(
             symbol=symbol,
             side=side,
             qty=qty,
             price=assumed_price,
-            current_exposure=current_exposure
+            current_exposure=current_exposure,
         )
 
         logger.info(f"Paper Order Placed | {symbol} | {side} | QTY: {qty} | Algo: {algo_id}")
@@ -75,28 +75,30 @@ class PaperBroker(BrokerAdapter):
             "side": side.upper(),
             "price": assumed_price,
             "status": "COMPLETED",
-            "algo_id": algo_id
+            "algo_id": algo_id,
         }
 
         # Track internal position
         multiplier = 1 if side.upper() == "BUY" else -1
         if symbol not in self._positions:
             self._positions[symbol] = {"qty": 0, "avg_price": 0.0}
-            
+
         current_pos = self._positions[symbol]
-        total_cost = (current_pos["qty"] * current_pos["avg_price"]) + (qty * fill_event["price"]) * multiplier
+        total_cost = (current_pos["qty"] * current_pos["avg_price"]) + (
+            qty * fill_event["price"]
+        ) * multiplier
         new_qty = current_pos["qty"] + (qty * multiplier)
 
         if new_qty != 0:
             current_pos["avg_price"] = total_cost / new_qty
         else:
             current_pos["avg_price"] = 0.0
-            
+
         current_pos["qty"] = new_qty
-        
+
         # Async stream to the REST API / WSS
         await message_bus.publish("trading_events", fill_event)
-        
+
         return {
             "status": "success",
             "order_id": order_id,

@@ -93,9 +93,7 @@ async def think(
     logger.info("Liquid think request · user=%s", current_user.email)
 
     user_content = (
-        f"Context: {payload.context}\n\n{payload.query}"
-        if payload.context
-        else payload.query
+        f"Context: {payload.context}\n\n{payload.query}" if payload.context else payload.query
     )
 
     messages = [
@@ -143,9 +141,7 @@ async def think_stream(
     logger.info("Liquid stream request · user=%s", current_user.email)
 
     user_content = (
-        f"Context: {payload.context}\n\n{payload.query}"
-        if payload.context
-        else payload.query
+        f"Context: {payload.context}\n\n{payload.query}" if payload.context else payload.query
     )
 
     messages = [

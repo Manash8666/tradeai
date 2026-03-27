@@ -37,27 +37,35 @@ class RiskParityEngine:
         if current_vix < min_vix:
             # "Greed" / Complacency mode — max equity.
             return AllocationWeights(
-                equity_pct=0.80, debt_pct=0.15, gold_pct=0.05,
-                reason=f"VIX ({current_vix:.1f}) below normal range. Heavily weighted to Equity."
+                equity_pct=0.80,
+                debt_pct=0.15,
+                gold_pct=0.05,
+                reason=f"VIX ({current_vix:.1f}) below normal range. Heavily weighted to Equity.",
             )
-        
+
         elif current_vix > 25.0:
             # "Panic" / Crash mode — capital flight to safety.
             return AllocationWeights(
-                equity_pct=0.30, debt_pct=0.40, gold_pct=0.30,
-                reason=f"VIX ({current_vix:.1f}) in panic zone (>25). Drastically reduced Equity, heavily boosted Gold/Debt."
+                equity_pct=0.30,
+                debt_pct=0.40,
+                gold_pct=0.30,
+                reason=f"VIX ({current_vix:.1f}) in panic zone (>25). Drastically reduced Equity, heavily boosted Gold/Debt.",  # noqa: E501
             )
-            
+
         elif current_vix > max_vix:
             # Elevated risk
             return AllocationWeights(
-                equity_pct=0.50, debt_pct=0.30, gold_pct=0.20,
-                reason=f"VIX ({current_vix:.1f}) is elevated. Balancing portfolios."
+                equity_pct=0.50,
+                debt_pct=0.30,
+                gold_pct=0.20,
+                reason=f"VIX ({current_vix:.1f}) is elevated. Balancing portfolios.",
             )
-            
+
         else:
             # Normal range
             return AllocationWeights(
-                equity_pct=0.65, debt_pct=0.25, gold_pct=0.10,
-                reason=f"VIX ({current_vix:.1f}) in normal bounds. Standard 65/25/10 allocation."
+                equity_pct=0.65,
+                debt_pct=0.25,
+                gold_pct=0.10,
+                reason=f"VIX ({current_vix:.1f}) in normal bounds. Standard 65/25/10 allocation.",
             )

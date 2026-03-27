@@ -28,13 +28,13 @@ class ManipulationDetector(BaseModel):
         # In a real environment, this is trained on NSE historical spoofing patterns
         self.model = IsolationForest(
             n_estimators=100,
-            max_samples='auto',
+            max_samples="auto",
             contamination=self.contamination_rate,
-            random_state=42
+            random_state=42,
         )
         self.explainer = None
         self._is_loaded = False
-        self.feature_names = ['volume_spike', 'latency_ms', 'orderbook_imbalance']
+        self.feature_names = ["volume_spike", "latency_ms", "orderbook_imbalance"]
 
     def load(self, path: str = "") -> None:
         """
@@ -45,15 +45,14 @@ class ManipulationDetector(BaseModel):
         # Feature 2: Latency between ticks
         # Feature 3: Orderbook Ask/Bid volume imbalance ratio (Spoofing indicator)
         dummy_healthy_data = np.random.normal(loc=[100, 15, 1.0], scale=[20, 5, 0.2], size=(500, 3))
-        dummy_spoof_data = np.array([
-            [5000, 5, 10.0],  # Massive volume, low latency, huge imbalance
-            [4500, 2, 8.5]
-        ])
-        
+        dummy_spoof_data = np.array(
+            [[5000, 5, 10.0], [4500, 2, 8.5]]  # Massive volume, low latency, huge imbalance
+        )
+
         training_data = np.vstack([dummy_healthy_data, dummy_spoof_data])
-        
+
         self.model.fit(training_data)
-        
+
         # Initialize SHAP explainer on the fitted Isolation Forest
         self.explainer = shap.TreeExplainer(self.model)
         self._is_loaded = True
@@ -77,20 +76,20 @@ class ManipulationDetector(BaseModel):
 
         # Sklearn returns 1 for inliers, -1 for outliers/anomalies
         predictions = self.model.predict(X)
-        anomaly_scores = self.model.score_samples(X) # Negative distances
+        anomaly_scores = self.model.score_samples(X)  # Negative distances
 
         results = []
         for i, pred in enumerate(predictions):
-            is_anomaly = (pred == -1)
-            
+            is_anomaly = pred == -1
+
             # Inverse score so anomaly is bounded ~0.0 to 1.0
-            confidence = abs(anomaly_scores[i]) 
+            confidence = abs(anomaly_scores[i])
             confidence = min(confidence, 1.0)
-            
+
             signal_data = {
                 "signal": "MANIPULATION_DETECTED" if is_anomaly else "NORMAL",
                 "confidence": float(confidence),
-                "metadata": {}
+                "metadata": {},
             }
 
             # If SEBI requires it, we run SHAP to explain exactly why this tick was flagged
@@ -100,18 +99,20 @@ class ManipulationDetector(BaseModel):
                 contribs = {}
                 for j, feat_name in enumerate(self.feature_names):
                     # How much this feature pushed the model toward predicting -1
-                    contribs[feat_name] = float(shap_values[j] if len(shap_values.shape) == 1 else shap_values[0][j])
-                
+                    contribs[feat_name] = float(
+                        shap_values[j] if len(shap_values.shape) == 1 else shap_values[0][j]
+                    )
+
                 # Identify the dominant feature
                 dominant_feature = max(contribs, key=lambda k: abs(contribs[k]))
-                
+
                 signal_data["metadata"] = {
                     "shap_contributions": contribs,
-                    "explanation": f"Flagged primarily due to anomalous {dominant_feature}."
+                    "explanation": f"Flagged primarily due to anomalous {dominant_feature}.",
                 }
-                
+
                 logger.warning(f"[RTMD-AI ALERT] {signal_data['metadata']['explanation']}")
-            
+
             results.append(signal_data)
-            
+
         return results[0] if len(results) == 1 else results

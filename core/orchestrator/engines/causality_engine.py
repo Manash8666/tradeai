@@ -20,15 +20,15 @@ class CausalityEngine:
         self._rules = {
             "CRUDE_OIL": {
                 "inverse": ["ASIANPAINT.NS", "INDIGO.NS"],  # Paints/Airlines hurt by high oil
-                "direct": ["ONGC.NS", "RELIANCE.NS"]       # Upstream producers benefit
+                "direct": ["ONGC.NS", "RELIANCE.NS"],  # Upstream producers benefit
             },
             "USD_INR": {
-                "direct": ["TCS.NS", "INFY.NS"],           # Weak rupee helps IT exporters
-                "inverse": ["MARUTI.NS"]                   # Hurts importers
+                "direct": ["TCS.NS", "INFY.NS"],  # Weak rupee helps IT exporters
+                "inverse": ["MARUTI.NS"],  # Hurts importers
             },
             "US_10Y_YIELD": {
-                "inverse": ["NIFTY_MIDCAP.NS"]             # High cost of capital hurts growth/midcaps
-            }
+                "inverse": ["NIFTY_MIDCAP.NS"]  # High cost of capital hurts growth/midcaps
+            },
         }
         logger.info("CausalityEngine initialized.")
 
@@ -42,7 +42,7 @@ class CausalityEngine:
         crude = macro_data.get("crude_oil_change_pct", 0.0)
         if crude > 0.03:
             insights.append(
-                f"Global Risk: Crude spiked {crude:.1%}. Bearish pressure expected on Aviation/Paints "
+                f"Global Risk: Crude spiked {crude:.1%}. Bearish pressure expected on Aviation/Paints "  # noqa: E501
                 f"({', '.join(self._rules['CRUDE_OIL']['inverse'])})."
             )
         elif crude < -0.03:

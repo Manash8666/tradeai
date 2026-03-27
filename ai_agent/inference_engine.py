@@ -24,7 +24,9 @@ class InferenceEngine:
         self.models: Dict[str, BaseModel] = {}
         logger.info("InferenceEngine initialized.")
 
-    def load_model(self, model_id: str, model_type: str = "mean_reversion", path: str | None = None) -> None:
+    def load_model(
+        self, model_id: str, model_type: str = "mean_reversion", path: str | None = None
+    ) -> None:
         """Load a model into memory."""
         if model_type == "mean_reversion":
             model = BaselineMeanReversion(window=20, z_threshold=2.0)
@@ -42,15 +44,18 @@ class InferenceEngine:
         """Execute the prediction for a given feature set."""
         if model_id not in self.models:
             raise KeyError(f"Model ID {model_id} not loaded in InferenceEngine.")
-            
+
         model = self.models[model_id]
         array_features = np.asarray(features)
-        
+
         # Execute prediction
         result = model.predict(array_features)
-        
-        logger.debug(f"Inference [{model_id}]: {result['signal']} @ {result['confidence']:.2f} conf")
+
+        logger.debug(
+            f"Inference [{model_id}]: {result['signal']} @ {result['confidence']:.2f} conf"
+        )
         return result
+
 
 # Global singleton for FastAPI and Strategy execution
 inference_engine = InferenceEngine()

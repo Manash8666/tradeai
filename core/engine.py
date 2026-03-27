@@ -43,17 +43,21 @@ class EngineWrapper:
                 )
 
                 self.node = TradingNode(config=config)
-                
+
                 # Start the node (this prepares the internal components)
                 self.node.start()
                 self._is_running = True
 
-                await message_bus.publish("system", {"event": "engine_started", "status": "success"})
+                await message_bus.publish(
+                    "system", {"event": "engine_started", "status": "success"}
+                )
                 logger.info("NautilusTrader Engine strictly started successfully.")
 
             except Exception as e:
                 logger.error(f"Failed to start Nautilus Engine: {e}", exc_info=True)
-                await message_bus.publish("system", {"event": "engine_start_failed", "error": str(e)})
+                await message_bus.publish(
+                    "system", {"event": "engine_start_failed", "error": str(e)}
+                )
                 raise e
 
     async def stop(self) -> None:
@@ -67,8 +71,10 @@ class EngineWrapper:
                 self.node.stop()
                 self._is_running = False
                 self.node = None
-                
-                await message_bus.publish("system", {"event": "engine_stopped", "status": "success"})
+
+                await message_bus.publish(
+                    "system", {"event": "engine_stopped", "status": "success"}
+                )
                 logger.info("NautilusTrader Engine stopped successfully.")
             except Exception as e:
                 logger.error(f"Error while stopping engine: {e}", exc_info=True)

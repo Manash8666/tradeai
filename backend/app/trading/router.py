@@ -35,7 +35,7 @@ async def start_engine(current_user: User = Depends(get_current_active_user)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="NautilusTrader Engine is already running.",
         )
-    
+
     try:
         await engine_wrapper.start()
         return {"is_running": True, "status": "Engine started successfully."}
@@ -54,7 +54,7 @@ async def stop_engine(current_user: User = Depends(get_current_active_user)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="NautilusTrader Engine is not currently running.",
         )
-    
+
     try:
         await engine_wrapper.stop()
         return {"is_running": False, "status": "Engine stopped successfully."}
@@ -85,13 +85,12 @@ class PaperOrderRequest(BaseModel):
 
 @router.post("/paper/order")
 async def place_paper_order(
-    order: PaperOrderRequest,
-    current_user: User = Depends(get_current_active_user)
+    order: PaperOrderRequest, current_user: User = Depends(get_current_active_user)
 ):
     """Place a synthetic paper trade against the Mock Broker."""
     if not paper_broker.is_connected:
         await paper_broker.connect()
-        
+
     try:
         res = await paper_broker.place_order(
             symbol=order.symbol,
@@ -99,7 +98,7 @@ async def place_paper_order(
             side=order.side,
             order_type=order.order_type,
             price=order.price,
-            algo_id=order.algo_id
+            algo_id=order.algo_id,
         )
         return res
     except Exception as e:

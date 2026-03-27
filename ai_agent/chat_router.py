@@ -42,6 +42,7 @@ _X_HEADERS = {
 
 class ChatRequest(BaseModel):
     """Payload for /ai/chat."""
+
     query: str = Field(
         ...,
         examples=["What is the meaning of life?", "Explain RSI divergence."],
@@ -52,6 +53,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     """Schema returned by POST /ai/chat."""
+
     answer: str
     model: str
 
@@ -77,7 +79,7 @@ async def chat(
 
     messages = [LLMMessage(role="user", content=payload.query)]
     client = get_llama_client()
-    
+
     try:
         # Standard chat (no reasoning argument)
         resp = await client.ask(messages, extra_headers=_X_HEADERS)

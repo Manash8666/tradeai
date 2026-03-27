@@ -23,6 +23,7 @@ from core.orchestrator.engines.sentiment_engine import SentimentScore
 # 1. Causality Engine
 # ---------------------------------------------------------------------------
 
+
 class TestCausalityEngine(unittest.TestCase):
     def setUp(self):
         self.engine = CausalityEngine()
@@ -37,7 +38,12 @@ class TestCausalityEngine(unittest.TestCase):
         macro = {"usd_inr_change_pct": 0.03}  # INR weakened by 3%
         insights = self.engine.run_causality_check(macro)
         self.assertTrue(any("TCS.NS" in i for i in insights))
-        self.assertTrue(any("Benefit" in i or "benefiting" in i.lower() or "direct benefit" in i.lower() for i in insights))
+        self.assertTrue(
+            any(
+                "Benefit" in i or "benefiting" in i.lower() or "direct benefit" in i.lower()
+                for i in insights
+            )
+        )
 
     def test_no_macro_triggers(self):
         macro = {"crude_oil_change_pct": 0.01, "usd_inr_change_pct": 0.01}
@@ -48,6 +54,7 @@ class TestCausalityEngine(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 2. Risk-Parity Engine
 # ---------------------------------------------------------------------------
+
 
 class TestRiskParityEngine(unittest.TestCase):
     def setUp(self):
@@ -68,6 +75,7 @@ class TestRiskParityEngine(unittest.TestCase):
 # 3. Healer Engine
 # ---------------------------------------------------------------------------
 
+
 class TestHealerEngine(unittest.TestCase):
     def setUp(self):
         # Panic at -15% PnL and <= -0.3 sentiment
@@ -75,21 +83,27 @@ class TestHealerEngine(unittest.TestCase):
 
     def test_identifies_and_rotates_weak_link(self):
         damaged_pos = Position(
-            ticker="BAD.NS", entry_price=100.0, current_price=80.0,  # -20% PnL
-            sentiment_score=-0.5, momentum_score=0.1
+            ticker="BAD.NS",
+            entry_price=100.0,
+            current_price=80.0,  # -20% PnL
+            sentiment_score=-0.5,
+            momentum_score=0.1,
         )
         healthy_pos = Position(
-            ticker="OKAY.NS", entry_price=100.0, current_price=105.0,
-            sentiment_score=0.2, momentum_score=0.4
+            ticker="OKAY.NS",
+            entry_price=100.0,
+            current_price=105.0,
+            sentiment_score=0.2,
+            momentum_score=0.4,
         )
-        
+
         candidates = [
             Position("STAR.NS", 100, 100, 0.8, 0.9),  # High momentum candidate
-            Position("MEH.NS", 100, 100, 0.6, 0.5)
+            Position("MEH.NS", 100, 100, 0.6, 0.5),
         ]
 
         actions = self.engine.evaluate_portfolio([damaged_pos, healthy_pos], candidates)
-        
+
         self.assertEqual(len(actions), 1)
         self.assertEqual(actions[0].ticker_to_sell, "BAD.NS")
         self.assertEqual(actions[0].ticker_to_buy, "STAR.NS")
@@ -97,8 +111,11 @@ class TestHealerEngine(unittest.TestCase):
 
     def test_sells_to_cash_if_no_candidates(self):
         damaged_pos = Position(
-            ticker="BAD.NS", entry_price=100.0, current_price=80.0,
-            sentiment_score=-0.5, momentum_score=0.1
+            ticker="BAD.NS",
+            entry_price=100.0,
+            current_price=80.0,
+            sentiment_score=-0.5,
+            momentum_score=0.1,
         )
         actions = self.engine.evaluate_portfolio([damaged_pos], candidates=[])
         self.assertEqual(actions[0].ticker_to_buy, "CASH")
@@ -108,17 +125,20 @@ class TestHealerEngine(unittest.TestCase):
 # 4. Orchestrator Integration (Mocks external calls)
 # ---------------------------------------------------------------------------
 
+
 class TestPortfolioManager(unittest.IsolatedAsyncioTestCase):
-    
-    @patch('core.orchestrator.portfolio_manager.YFinanceAdapter', autospec=True)
-    @patch('core.orchestrator.portfolio_manager.SentimentEngine', autospec=True)
+
+    @patch("core.orchestrator.portfolio_manager.YFinanceAdapter", autospec=True)
+    @patch("core.orchestrator.portfolio_manager.SentimentEngine", autospec=True)
     async def test_orchestration_cycle(self, mock_sentiment_class, mock_yf_class):
         # Setup mocks
         mock_yf_instance = mock_yf_class.return_value
-        mock_yf_instance.fetch_macro_snapshot = AsyncMock(return_value={
-            "india_vix_close": 26.0,  # Should trigger panic parity
-            "crude_oil_change_pct": 0.05
-        })
+        mock_yf_instance.fetch_macro_snapshot = AsyncMock(
+            return_value={
+                "india_vix_close": 26.0,  # Should trigger panic parity
+                "crude_oil_change_pct": 0.05,
+            }
+        )
 
         mock_sentiment_instance = mock_sentiment_class.return_value
         mock_sentiment_instance.analyze_headlines = AsyncMock(
@@ -126,14 +146,12 @@ class TestPortfolioManager(unittest.IsolatedAsyncioTestCase):
         )
 
         manager = PortfolioManager()
-        
+
         # Override the injected mocks
         manager.yfinance = mock_yf_instance
         manager.sentiment = mock_sentiment_instance
 
-        positions = [
-            Position("TCS.NS", 100.0, 105.0, 0.0, 0.5)
-        ]
+        positions = [Position("TCS.NS", 100.0, 105.0, 0.0, 0.5)]
         headlines = {"TCS.NS": ["TCS posts record Q3 profits"]}
 
         report = await manager.run_orchestration_cycle(positions, [], headlines)
@@ -141,7 +159,7 @@ class TestPortfolioManager(unittest.IsolatedAsyncioTestCase):
         # Asserts
         self.assertIn("global_macros", report)
         self.assertIn("causality_insights", report)
-        
+
         # VIX was 26.0, should be "Panic" zone (30% equity)
         alloc = report["recommended_allocation"]
         self.assertEqual(alloc["equity"], 0.30)

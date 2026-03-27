@@ -6,7 +6,7 @@ Every action is logged and cannot be modified or deleted.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Integer, JSON, String, Text
+from sqlalchemy import DateTime, Integer, JSON, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 

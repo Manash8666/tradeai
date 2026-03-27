@@ -20,13 +20,14 @@ from ai_agent.llm_client import NemotronClient, LLMMessage, LLMResponse
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_llama_response(content: str) -> MagicMock:
     usage = MagicMock()
     usage.prompt_tokens = 20
     usage.completion_tokens = 30
     usage.total_tokens = 50
     # Instruct models don't return reasoning tokens
-    usage.reasoning_tokens = 0 
+    usage.reasoning_tokens = 0
 
     msg = MagicMock()
     msg.content = content
@@ -46,17 +47,20 @@ def _make_llama_response(content: str) -> MagicMock:
 # 1. get_llama_client singleton
 # ---------------------------------------------------------------------------
 
+
 class TestGetLlamaClient(unittest.TestCase):
 
     def test_returns_nemotron_client_instance(self):
         """get_llama_client() returns NemotronClient pointed at Llama model."""
         import os
+
         os.environ.setdefault("OPENROUTER_API_KEY", "sk-test-llama")
         os.environ.setdefault("LLAMA_MODEL", "meta-llama/llama-3.2-3b-instruct:free")
         os.environ.setdefault("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
         os.environ.setdefault("JWT_SECRET_KEY", "test-secret")
 
         from ai_agent.llm_client import get_llama_client
+
         client = get_llama_client()
         self.assertIsInstance(client, NemotronClient)
         self.assertIn("llama", client._model)
@@ -65,6 +69,7 @@ class TestGetLlamaClient(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 2. Client .ask() — headers injection
 # ---------------------------------------------------------------------------
+
 
 class TestLlamaClientAsk(unittest.IsolatedAsyncioTestCase):
 
@@ -80,8 +85,7 @@ class TestLlamaClientAsk(unittest.IsolatedAsyncioTestCase):
 
         headers = {"X-Custom": "Test"}
         resp = await client.ask(
-            [LLMMessage(role="user", content="Meaning of life?")],
-            extra_headers=headers
+            [LLMMessage(role="user", content="Meaning of life?")], extra_headers=headers
         )
 
         self.assertIsInstance(resp, LLMResponse)
@@ -98,10 +102,12 @@ class TestLlamaClientAsk(unittest.IsolatedAsyncioTestCase):
 # 3. /ai/chat endpoint tests
 # ---------------------------------------------------------------------------
 
+
 class TestChatEndpointSchema(unittest.TestCase):
 
     def test_chat_router_registered(self):
         from ai_agent.chat_router import router
+
         paths = [r.path for r in router.routes]
         self.assertIn("/ai/chat", paths)
         self.assertIn("/ai/chat/stream", paths)
@@ -131,9 +137,7 @@ class TestChatHandler(unittest.IsolatedAsyncioTestCase):
         original = cr.get_llama_client
 
         mock_client = MagicMock()
-        mock_client.ask = AsyncMock(
-            return_value=NemotronClient._parse_response(fake_resp)
-        )
+        mock_client.ask = AsyncMock(return_value=NemotronClient._parse_response(fake_resp))
 
         try:
             cr.get_llama_client = lambda: mock_client

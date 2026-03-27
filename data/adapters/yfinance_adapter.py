@@ -41,13 +41,13 @@ class YFinanceAdapter:
                 hist = ticker.history(period="5d")  # Pad for weekends/holidays
 
                 if len(hist) >= 2:
-                    last_close = hist['Close'].iloc[-1]
-                    prev_close = hist['Close'].iloc[-2]
+                    last_close = hist["Close"].iloc[-1]
+                    prev_close = hist["Close"].iloc[-2]
                     change_pct = (last_close - prev_close) / prev_close
-                    
+
                     snapshot[f"{name}_close"] = float(last_close)
                     snapshot[f"{name}_change_pct"] = float(change_pct)
-                    
+
             except Exception as exc:
                 logger.warning(f"yfinance failed to retrieve {name} ({symbol}): {exc}")
 

@@ -26,7 +26,6 @@ from backend.app.auth.service import (
     decode_token,
     get_user_by_email,
     get_user_by_id,
-    hash_token,
     revoke_all_user_sessions,
 )
 from backend.app.config import get_settings

@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # Global Clickhouse Client Singleton
 client = None
 
+
 def get_clickhouse_client():
     """Returns the active Clickhouse connect client."""
     global client
@@ -23,8 +24,14 @@ def get_clickhouse_client():
             client = clickhouse_connect.get_client(
                 host=host,
                 port=8123,
-                username=settings.clickhouse_user if hasattr(settings, 'clickhouse_user') else "default",
-                password=settings.clickhouse_password if hasattr(settings, 'clickhouse_password') else "dev_clickhouse_password"
+                username=(
+                    settings.clickhouse_user if hasattr(settings, "clickhouse_user") else "default"
+                ),
+                password=(
+                    settings.clickhouse_password
+                    if hasattr(settings, "clickhouse_password")
+                    else "dev_clickhouse_password"
+                ),
             )
             logger.info("Successfully connected to ClickHouse for Audit Logging.")
         except Exception as e:
@@ -32,10 +39,11 @@ def get_clickhouse_client():
             raise e
     return client
 
+
 def init_clickhouse():
     """Initializes the immutable Hash-Chained Audit table."""
     c = get_clickhouse_client()
-    
+
     # We use MergeTree. It is append-only by default (mutations are heavy and visible).
     schema = """
     CREATE TABLE IF NOT EXISTS audit_logs (
@@ -48,15 +56,16 @@ def init_clickhouse():
         ip_addresses String,
         user_id String,
         timestamp DateTime64(6, 'UTC') DEFAULT now(),
-        
+
         -- Cryptographic validation
-        previous_hash String, 
+        previous_hash String,
         current_hash String
     ) ENGINE = MergeTree()
     ORDER BY (timestamp, request_id)
     """
     c.command(schema)
     logger.info("Validated `audit_logs` MergeTree schema on ClickHouse.")
+
 
 def get_latest_hash() -> str:
     """Retrieve the `current_hash` from the absolute latest row in the ledger."""

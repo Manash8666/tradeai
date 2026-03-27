@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class SentimentScore:
     asset: str
     score: float  # -1.0 (Extremely Bearish) to 1.0 (Extremely Bullish)
-    label: str    # "Bullish", "Neutral", "Bearish"
+    label: str  # "Bullish", "Neutral", "Bearish"
     reasoning: str
 
 

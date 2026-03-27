@@ -28,7 +28,7 @@ class TrueDataAdapter(DataAdapter):
         if not self.api_key:
             logger.error("Missing TrueData API credentials")
             raise ValueError("TRUEDATA_API_KEY environment variable required")
-            
+
         logger.info("Connecting to TrueData WebSocket server...")
         self._is_connected = True
         logger.info("TrueData connection established.")
@@ -41,7 +41,7 @@ class TrueDataAdapter(DataAdapter):
     async def get_quote(self, symbol: str) -> MarketQuote:
         if not self._is_connected:
             raise ConnectionError("TrueData not connected")
-            
+
         # Placeholder for real REST call
         raise NotImplementedError("TrueData REST HTTP fetch not implemented yet")
 
@@ -51,17 +51,17 @@ class TrueDataAdapter(DataAdapter):
             raise ConnectionError("TrueData not connected")
 
         logger.info(f"Subscribing to TrueData feeds: {symbols}")
-        
+
         # Placeholder for WSS listening loop
         yield MarketQuote(
             symbol=symbols[0],
-            timestamp=None, # type: ignore
+            timestamp=None,  # type: ignore
             open=0.0,
             high=0.0,
             low=0.0,
             close=0.0,
             volume=0,
-            source=self.provider_name
+            source=self.provider_name,
         )
 
     @property

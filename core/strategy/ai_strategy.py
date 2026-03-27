@@ -11,6 +11,7 @@ from ai_agent.inference_engine import inference_engine
 from core.message_bus import message_bus
 from core.strategy.base import BaseStrategy
 
+
 class AITradingStrategy(BaseStrategy):
     """Executes trades based on AI Inference signals."""
 
@@ -32,13 +33,16 @@ class AITradingStrategy(BaseStrategy):
 
     async def _publish_signal(self, signal: str, confidence: float, price: float):
         """Broadcast signal over Message Bus for frontend."""
-        await message_bus.publish("ai_signals", {
-            "symbol": self.symbol,
-            "signal": signal,
-            "confidence": confidence,
-            "timestamp": self.node.clock.timestamp_ms(),
-            "price": price
-        })
+        await message_bus.publish(
+            "ai_signals",
+            {
+                "symbol": self.symbol,
+                "signal": signal,
+                "confidence": confidence,
+                "timestamp": self.node.clock.timestamp_ms(),
+                "price": price,
+            },
+        )
 
     def on_quote_tick(self, tick: QuoteTick) -> None:
         """Process real-time ticks and request inference."""
@@ -49,33 +53,34 @@ class AITradingStrategy(BaseStrategy):
         self.tick_buffer.append(price)
 
         # Basic batching: Run inference every time we get enough data
-        if len(self.tick_buffer) >= 20: 
+        if len(self.tick_buffer) >= 20:
             # Slice the last 20 for inference
             features = self.tick_buffer[-20:]
-            
+
             # Predict
             prediction = inference_engine.run_inference(self.model_id, features)
             signal = prediction["signal"]
             confidence = prediction["confidence"]
-            
+
             # Non-blocking async publish to UI
-            # (Note: In strict Nautilus production, passing async to the bus 
+            # (Note: In strict Nautilus production, passing async to the bus
             # from synchronous on_quote_tick requires a thread-safe queue jump)
             import asyncio
+
             try:
                 loop = asyncio.get_running_loop()
                 loop.create_task(self._publish_signal(signal, confidence, price))
             except RuntimeError:
-                pass # Event loop not running in backtest mode
-                
+                pass  # Event loop not running in backtest mode
+
             # Naive Execution Logic
             if signal == "BUY" and not self.active_position:
                 self.log.info(f"AI Signal: BUY at {price} (Conf: {confidence})")
                 self.active_position = True
-                
+
             elif signal == "SELL" and self.active_position:
                 self.log.info(f"AI Signal: SELL at {price} (Conf: {confidence})")
                 self.active_position = False
-            
+
             # Slide window
             self.tick_buffer.pop(0)

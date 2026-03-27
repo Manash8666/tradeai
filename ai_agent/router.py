@@ -30,8 +30,10 @@ router = APIRouter(prefix="/ai", tags=["AI Analysis"])
 # Request / Response schemas
 # ---------------------------------------------------------------------------
 
+
 class AnalyzeRequest(BaseModel):
     """Payload for the /ai/analyze endpoint."""
+
     ticker: str = Field(
         ...,
         examples=["NIFTY50"],
@@ -56,6 +58,7 @@ class AnalyzeRequest(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     """Schema returned by /ai/analyze."""
+
     ticker: str
     signal: str = Field(description="BUY | SELL | HOLD")
     confidence: float = Field(description="0.0 – 1.0")
@@ -71,6 +74,7 @@ class AnalyzeResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Endpoint
 # ---------------------------------------------------------------------------
+
 
 @router.post(
     "/analyze",

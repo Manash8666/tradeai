@@ -20,6 +20,7 @@ from ai_agent.llm_client import NemotronClient, LLMMessage, LLMResponse
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_liquid_response(
     content: str,
     reasoning_tokens: int = 18,
@@ -49,17 +50,20 @@ def _make_liquid_response(
 # 1. get_liquid_client singleton
 # ---------------------------------------------------------------------------
 
+
 class TestGetLiquidClient(unittest.TestCase):
 
     def test_returns_nemotron_client_instance(self):
         """get_liquid_client() must return a NemotronClient pointed at the Liquid model."""
         import os
+
         os.environ.setdefault("OPENROUTER_API_KEY", "sk-test-liquid")
         os.environ.setdefault("LIQUID_MODEL", "liquid/lfm-2.5-1.2b-thinking:free")
         os.environ.setdefault("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
         os.environ.setdefault("JWT_SECRET_KEY", "test-secret")
 
         from ai_agent.llm_client import get_liquid_client
+
         client = get_liquid_client()
         self.assertIsInstance(client, NemotronClient)
         self.assertIn("liquid", client._model)
@@ -68,6 +72,7 @@ class TestGetLiquidClient(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 2. NemotronClient with Liquid model — ask_with_reasoning
 # ---------------------------------------------------------------------------
+
 
 class TestLiquidClientAsk(unittest.IsolatedAsyncioTestCase):
 
@@ -84,9 +89,9 @@ class TestLiquidClientAsk(unittest.IsolatedAsyncioTestCase):
         client._client = MagicMock()
         client._client.chat.completions.create = AsyncMock(return_value=fake)
 
-        resp = await client.ask_with_reasoning([
-            LLMMessage(role="user", content="What does an inverted hammer at resistance imply?")
-        ])
+        resp = await client.ask_with_reasoning(
+            [LLMMessage(role="user", content="What does an inverted hammer at resistance imply?")]
+        )
 
         self.assertIsInstance(resp, LLMResponse)
         self.assertIn("bullish", resp.content)
@@ -123,9 +128,7 @@ class TestLiquidClientAsk(unittest.IsolatedAsyncioTestCase):
         client._client = MagicMock()
         client._client.chat.completions.create = AsyncMock(return_value=fake_aiter())
 
-        text, tokens = await client.stream_ask([
-            LLMMessage(role="user", content="Quick question.")
-        ])
+        text, tokens = await client.stream_ask([LLMMessage(role="user", content="Quick question.")])
 
         self.assertEqual(text, "Liquid is fast.")
         self.assertEqual(tokens, 15)
@@ -135,10 +138,12 @@ class TestLiquidClientAsk(unittest.IsolatedAsyncioTestCase):
 # 3. /ai/think endpoint — schema & structure
 # ---------------------------------------------------------------------------
 
+
 class TestThinkEndpointSchema(unittest.TestCase):
 
     def test_think_router_registered(self):
         from ai_agent.thinking_router import router
+
         paths = [r.path for r in router.routes]
         self.assertIn("/ai/think", paths)
         self.assertIn("/ai/think/stream", paths)
@@ -161,6 +166,7 @@ class TestThinkEndpointSchema(unittest.TestCase):
 
     def test_think_response_schema(self):
         from ai_agent.thinking_router import ThinkResponse
+
         r = ThinkResponse(
             answer="Sell — IV is elevated.",
             reasoning_tokens=12,
@@ -179,6 +185,7 @@ class TestThinkEndpointSchema(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # 4. Full think() handler — mocked LLM
 # ---------------------------------------------------------------------------
+
 
 class TestThinkHandler(unittest.IsolatedAsyncioTestCase):
 

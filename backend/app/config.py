@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     app_name: str = "TradingPlatform"
     app_env: str = "development"
     app_debug: bool = False
-    app_host: str = "0.0.0.0"
+    app_host: str = "0.0.0.0"  # nosec B104
     app_port: int = 8000
     frontend_url: str = "http://localhost:5173"
 
@@ -27,7 +27,9 @@ class Settings(BaseSettings):
     jwt_refresh_token_expire_days: int = 7
 
     # --- PostgreSQL ---
-    database_url: str = "postgresql+asyncpg://trading_user:dev_password@localhost:5432/trading_platform"
+    database_url: str = (
+        "postgresql+asyncpg://trading_user:dev_password@localhost:5432/trading_platform"
+    )
 
     # --- Redis ---
     redis_url: str = "redis://localhost:6379/0"

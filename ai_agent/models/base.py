@@ -34,7 +34,7 @@ class BaseModel(ABC):
     def predict(self, features: pd.DataFrame | np.ndarray) -> Dict[str, Any]:
         """
         Run inference on the provided feature set.
-        
+
         Returns:
             Dict containing standardized prediction keys:
             - 'signal': str (BUY/SELL/HOLD)

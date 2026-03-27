@@ -28,15 +28,12 @@ class StrategyBacktester:
     def run_backtest(self, symbol: str, start_date: str, end_date: str) -> Dict[str, Any]:
         """
         Execute a historical backtest.
-        In a real application, this would load `nautilus_trader.model.data` chunks 
+        In a real application, this would load `nautilus_trader.model.data` chunks
         from ClickHouse or parquet files into the `BacktestDataConfig`.
         """
         logger.info(f"Preparing Backtest for {symbol} | {start_date} to {end_date}")
 
-        config = BacktestEngineConfig(
-            trader_id="BACKTEST_AI_1",
-            logging={"level": "INFO"}
-        )
+        config = BacktestEngineConfig(trader_id="BACKTEST_AI_1", logging={"level": "INFO"})
 
         engine = BacktestEngine(config=config)
 
@@ -49,7 +46,7 @@ class StrategyBacktester:
 
         # 1. Load Data
         # engine.add_data(...)
-        
+
         # 2. Load Strategy
         # from core.strategy.ai_strategy import AITradingStrategy
         # engine.add_strategy(strategy=AITradingStrategy(config={"symbol": symbol}))
@@ -57,9 +54,9 @@ class StrategyBacktester:
         # 3. Run
         logger.info("Running Nautilus BacktestEngine -> SIM...")
         # engine.run()
-        
+
         logger.info("Backtest finished.")
-        
+
         # Generate Dummy Report
         return {
             "symbol": symbol,
@@ -69,7 +66,7 @@ class StrategyBacktester:
                 "total_return_pct": 14.5,
                 "max_drawdown_pct": 2.1,
                 "sharpe_ratio": 1.85,
-                "total_trades": 120
+                "total_trades": 120,
             },
             "equity_curve": [
                 {"timestamp": "2024-01-01T09:15:00", "equity": 100000.0},
@@ -77,5 +74,5 @@ class StrategyBacktester:
                 {"timestamp": "2024-01-03T15:30:00", "equity": 101000.0},
                 {"timestamp": "2024-01-04T15:30:00", "equity": 103000.0},
                 {"timestamp": "2024-01-05T15:30:00", "equity": 104500.0},
-            ]
+            ],
         }

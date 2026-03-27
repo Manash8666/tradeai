@@ -1,7 +1,7 @@
 """
 API Router — AI Portfolio Orchestrator
 =======================================
-Exposes `/orchestrator/run` to manually trigger the Multi-Agent 
+Exposes `/orchestrator/run` to manually trigger the Multi-Agent
 Portfolio orchestration cycle.
 """
 
@@ -28,6 +28,7 @@ _manager = PortfolioManager()
 # Request / Response Models
 # ---------------------------------------------------------------------------
 
+
 class PositionInput(BaseModel):
     ticker: str
     entry_price: float
@@ -38,18 +39,23 @@ class PositionInput(BaseModel):
 
 class OrchestratorRequest(BaseModel):
     positions: List[PositionInput] = Field(..., description="Current live portfolio positions.")
-    candidates: List[PositionInput] = Field(default_factory=list, description="Watchlist for potential rotation.")
-    news_headlines: Dict[str, List[str]] = Field(default_factory=dict, description="Recent news headlines keyed by ticker.")
+    candidates: List[PositionInput] = Field(
+        default_factory=list, description="Watchlist for potential rotation."
+    )
+    news_headlines: Dict[str, List[str]] = Field(
+        default_factory=dict, description="Recent news headlines keyed by ticker."
+    )
 
 
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.post(
     "/run",
     summary="Run AI Orchestration Cycle",
-    description="Executes Sentiment, Causality, RL stop-loss, Healer rotation, and Risk Parity logic.",
+    description="Executes Sentiment, Causality, RL stop-loss, Healer rotation, and Risk Parity logic.",  # noqa: E501
     status_code=status.HTTP_200_OK,
 )
 async def run_orchestrator(
@@ -67,25 +73,27 @@ async def run_orchestrator(
                 entry_price=p.entry_price,
                 current_price=p.current_price,
                 sentiment_score=p.sentiment_score,
-                momentum_score=p.momentum_score
-            ) for p in payload.positions
+                momentum_score=p.momentum_score,
+            )
+            for p in payload.positions
         ]
-        
+
         internal_candidates = [
             Position(
                 ticker=p.ticker,
                 entry_price=p.entry_price,
                 current_price=p.current_price,
                 sentiment_score=p.sentiment_score,
-                momentum_score=p.momentum_score
-            ) for p in payload.candidates
+                momentum_score=p.momentum_score,
+            )
+            for p in payload.candidates
         ]
 
         # Execute cycle
         report = await _manager.run_orchestration_cycle(
             positions=internal_positions,
             candidates=internal_candidates,
-            headlines=payload.news_headlines
+            headlines=payload.news_headlines,
         )
         return {"status": "success", "report": report}
 
@@ -93,5 +101,5 @@ async def run_orchestrator(
         logger.exception("Orchestration cycle failed: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Orchestration engine failure: {exc}"
+            detail=f"Orchestration engine failure: {exc}",
         ) from exc

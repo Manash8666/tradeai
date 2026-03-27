@@ -37,7 +37,9 @@ class HealerEngine:
         self.sentiment_threshold = sentiment_threshold
         logger.info("HealerEngine initialized.")
 
-    def evaluate_portfolio(self, positions: List[Position], candidates: List[Position]) -> List[HealerAction]:
+    def evaluate_portfolio(
+        self, positions: List[Position], candidates: List[Position]
+    ) -> List[HealerAction]:
         """
         Scans current positions for weak links and finds high-momentum
         candidates for capital rotation.
@@ -51,7 +53,7 @@ class HealerEngine:
             if pnl_pct <= self.panic_threshold and pos.sentiment_score <= self.sentiment_threshold:
                 weak_links.append(pos)
                 logger.warning(
-                    f"Weak Link Identified: {pos.ticker} (PnL: {pnl_pct:.1%}, Sentiment: {pos.sentiment_score})"
+                    f"Weak Link Identified: {pos.ticker} (PnL: {pnl_pct:.1%}, Sentiment: {pos.sentiment_score})"  # noqa: E501
                 )
 
         if not weak_links:
@@ -59,10 +61,9 @@ class HealerEngine:
 
         # 2. Find High-Momentum replacements
         strong_candidates = [
-            c for c in candidates 
-            if c.momentum_score > 0.7 and c.sentiment_score > 0.5
+            c for c in candidates if c.momentum_score > 0.7 and c.sentiment_score > 0.5
         ]
-        
+
         # Sort candidates by momentum (highest first)
         strong_candidates.sort(key=lambda x: x.momentum_score, reverse=True)
 
@@ -71,13 +72,17 @@ class HealerEngine:
             if strong_candidates:
                 replacement = strong_candidates.pop(0)
                 reason = (
-                    f"Tax-Loss Harvesting {weak.ticker} (-{abs((weak.current_price-weak.entry_price)/weak.entry_price):.1%} loss, "
-                    f"sentiment {weak.sentiment_score}). Rotating capital to strong momentum {replacement.ticker} "
+                    f"Tax-Loss Harvesting {weak.ticker} (-{abs((weak.current_price-weak.entry_price)/weak.entry_price):.1%} loss, "  # noqa: E501
+                    f"sentiment {weak.sentiment_score}). Rotating capital to strong momentum {replacement.ticker} "  # noqa: E501
                     f"(momentum {replacement.momentum_score})."
                 )
                 actions.append(HealerAction(weak.ticker, replacement.ticker, reason))
             else:
                 # No strong candidates; sell to cash
-                actions.append(HealerAction(weak.ticker, "CASH", f"Liquidating {weak.ticker} to preserve capital."))
+                actions.append(
+                    HealerAction(
+                        weak.ticker, "CASH", f"Liquidating {weak.ticker} to preserve capital."
+                    )
+                )
 
         return actions

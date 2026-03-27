@@ -44,7 +44,7 @@ class DevDataAdapter(DataAdapter):
         # Random walk +/- 0.5%
         volatility = base_price * 0.005
         current_price = base_price + random.uniform(-volatility, volatility)
-        
+
         return MarketQuote(
             symbol=symbol,
             timestamp=datetime.now(timezone.utc),
@@ -53,7 +53,7 @@ class DevDataAdapter(DataAdapter):
             low=current_price - 5.0,
             close=current_price,
             volume=random.randint(1000, 50000),
-            source=self.provider_name
+            source=self.provider_name,
         )
 
     async def stream_quotes(self, symbols: List[str]) -> AsyncIterator[MarketQuote]:
@@ -61,11 +61,11 @@ class DevDataAdapter(DataAdapter):
             raise ConnectionError("DataAdapter not connected")
 
         logger.info(f"Started streaming mock quotes for: {symbols}")
-        
+
         while self._is_connected:
             for sys in symbols:
                 yield await self.get_quote(sys)
-            
+
             # Simulate tick latency
             await asyncio.sleep(random.uniform(0.1, 0.5))
 

@@ -63,8 +63,7 @@ def create_refresh_token(user_id: str) -> str:
     payload: dict[str, Any] = {
         "sub": user_id,
         "type": "refresh",
-        "exp": datetime.now(timezone.utc)
-        + timedelta(days=settings.jwt_refresh_token_expire_days),
+        "exp": datetime.now(timezone.utc) + timedelta(days=settings.jwt_refresh_token_expire_days),
         "iat": datetime.now(timezone.utc),
         "jti": str(uuid.uuid4()),
     }
@@ -122,9 +121,7 @@ async def create_user(
     return user
 
 
-async def authenticate_user(
-    db: AsyncSession, email: str, password: str
-) -> User | None:
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
     """Authenticate a user by email and password."""
     user = await get_user_by_email(db, email.lower().strip())
     if user is None:
@@ -164,9 +161,7 @@ async def create_session(
 
 async def revoke_session(db: AsyncSession, session_id: uuid.UUID) -> None:
     """Revoke a session (logout)."""
-    result = await db.execute(
-        select(UserSession).where(UserSession.id == session_id)
-    )
+    result = await db.execute(select(UserSession).where(UserSession.id == session_id))
     session = result.scalar_one_or_none()
     if session:
         session.is_active = False

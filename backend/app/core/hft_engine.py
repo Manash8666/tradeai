@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import uuid
-from typing import Dict, Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -9,24 +8,29 @@ logger = logging.getLogger(__name__)
 # In production, `maturin develop --release` compiles the inner rust node into this namespace.
 try:
     from backend.app.core.rust_engine import proprietary_hft_rs
+
     RUST_AVAILABLE = True
     logger.info("CRITICAL OPTIMIZATION: PyO3 Rust HFT Engine Engaged. Bypassing GIL.")
 except ImportError:
     RUST_AVAILABLE = False
-    logger.warning("Rust compiled bindings absent. Falling back to Python AsyncIO (100x Latency Penalty).")
+    logger.warning(
+        "Rust compiled bindings absent. Falling back to Python AsyncIO (100x Latency Penalty)."
+    )
+
 
 class InstitutionalHFTNode:
     """
     The Master Execution Node mapping directly to Custom Rust Core structures.
     """
+
     def __init__(self):
         self.is_running = False
-        
+
         if RUST_AVAILABLE:
             self.rust_core = proprietary_hft_rs.ProprietaryRustEngine()
         else:
             self.rust_core = None
-            
+
         logger.info("Initializing Proprietary Insitutional HFT Node")
 
     async def submit_order(self, symbol: str, quantity: int, side: str, order_type: str = "MARKET"):
@@ -50,6 +54,7 @@ class InstitutionalHFTNode:
     async def stop(self):
         self.is_running = False
         logger.info("HFT Engine Halted - Dropping Rust Memory Locks.")
-        
+
+
 # Global Singleton instance
 hft_engine = InstitutionalHFTNode()

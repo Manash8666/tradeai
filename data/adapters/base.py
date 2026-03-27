@@ -25,6 +25,7 @@ class TimeFrame(Enum):
 @dataclass
 class MarketQuote:
     """Standardized OHLCV + Tick Quote model."""
+
     symbol: str
     timestamp: datetime
     open: float

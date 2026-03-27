@@ -36,22 +36,22 @@ class BaselineMeanReversion(BaseModel):
         """
         if isinstance(features, pd.DataFrame):
             # Assumes 'close' column exists
-            prices = features['close'].values
+            prices = features["close"].values
         else:
             prices = np.asarray(features)
-            
+
         if len(prices) < self.window:
             return {
                 "signal": "HOLD",
                 "confidence": 0.0,
-                "metadata": {"reason": "insufficient_data"}
+                "metadata": {"reason": "insufficient_data"},
             }
 
         # Calculate Z-Score of the most recent price
-        recent_prices = prices[-self.window:]
+        recent_prices = prices[-self.window :]
         mean_price = np.mean(recent_prices)
         std_price = np.std(recent_prices)
-        
+
         if std_price == 0:
             return {"signal": "HOLD", "confidence": 0.0}
 
@@ -66,20 +66,16 @@ class BaselineMeanReversion(BaseModel):
             return {
                 "signal": "BUY",
                 "confidence": confidence,
-                "metadata": {"z_score": float(z_score), "mean": float(mean_price)}
+                "metadata": {"z_score": float(z_score), "mean": float(mean_price)},
             }
-            
+
         elif z_score > self.z_threshold:
             # We are overbought
             confidence = min(abs(z_score) / (self.z_threshold * 1.5), 1.0)
             return {
                 "signal": "SELL",
                 "confidence": confidence,
-                "metadata": {"z_score": float(z_score), "mean": float(mean_price)}
+                "metadata": {"z_score": float(z_score), "mean": float(mean_price)},
             }
-            
-        return {
-            "signal": "HOLD",
-            "confidence": 0.0,
-            "metadata": {"z_score": float(z_score)}
-        }
+
+        return {"signal": "HOLD", "confidence": 0.0, "metadata": {"z_score": float(z_score)}}

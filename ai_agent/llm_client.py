@@ -29,9 +29,11 @@ logger = logging.getLogger(__name__)
 # Data containers
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class LLMMessage:
     """A single message in a chat conversation."""
+
     role: str  # "system" | "user" | "assistant"
     content: str
     reasoning_details: list[dict] | None = field(default=None)
@@ -40,6 +42,7 @@ class LLMMessage:
 @dataclass
 class LLMResponse:
     """Structured response from the LLM."""
+
     content: str
     reasoning_details: list[dict] = field(default_factory=list)
     reasoning_tokens: int = 0
@@ -50,6 +53,7 @@ class LLMResponse:
 # ---------------------------------------------------------------------------
 # Client
 # ---------------------------------------------------------------------------
+
 
 class NemotronClient:
     """
@@ -91,24 +95,23 @@ class NemotronClient:
     # Public API
     # ------------------------------------------------------------------
 
-    async def ask(self, messages: list[LLMMessage], extra_headers: dict | None = None) -> LLMResponse:
+    async def ask(
+        self, messages: list[LLMMessage], extra_headers: dict | None = None
+    ) -> LLMResponse:
         """
         Single-shot chat completion (no reasoning mode).
         Suitable for classification, summarisation, quick Q&A.
         """
-        kwargs = {
-            "model": self._model,
-            "messages": self._serialise(messages)
-        }
+        kwargs = {"model": self._model, "messages": self._serialise(messages)}
         if extra_headers:
             kwargs["extra_headers"] = extra_headers
 
-        raw = await self._with_retry(
-            self._client.chat.completions.create(**kwargs)
-        )
+        raw = await self._with_retry(self._client.chat.completions.create(**kwargs))
         return self._parse_response(raw)
 
-    async def ask_with_reasoning(self, messages: list[LLMMessage], extra_headers: dict | None = None) -> LLMResponse:
+    async def ask_with_reasoning(
+        self, messages: list[LLMMessage], extra_headers: dict | None = None
+    ) -> LLMResponse:
         """
         Chat completion with extended thinking enabled.
         Returns reasoning_details so multi-turn reasoning chains work correctly.
@@ -121,12 +124,12 @@ class NemotronClient:
         if extra_headers:
             kwargs["extra_headers"] = extra_headers
 
-        raw = await self._with_retry(
-            self._client.chat.completions.create(**kwargs)
-        )
+        raw = await self._with_retry(self._client.chat.completions.create(**kwargs))
         return self._parse_response(raw)
 
-    async def stream_ask(self, messages: list[LLMMessage], extra_headers: dict | None = None) -> tuple[str, int]:
+    async def stream_ask(
+        self, messages: list[LLMMessage], extra_headers: dict | None = None
+    ) -> tuple[str, int]:
         """
         Streaming chat — accumulates the full response text and returns
         (full_text, reasoning_tokens).  Useful for server-sent events.
@@ -144,9 +147,7 @@ class NemotronClient:
         if extra_headers:
             kwargs["extra_headers"] = extra_headers
 
-        stream = await self._with_retry(
-            self._client.chat.completions.create(**kwargs)
-        )
+        stream = await self._with_retry(self._client.chat.completions.create(**kwargs))
 
         async for chunk in stream:
             delta = chunk.choices[0].delta if chunk.choices else None
@@ -215,18 +216,23 @@ class NemotronClient:
             try:
                 return await coro_or_awaitable
             except RateLimitError as exc:
-                wait = 2 ** attempt
+                wait = 2**attempt
                 logger.warning(
                     "Rate limited by OpenRouter (attempt %d/%d). Retrying in %ds…",
-                    attempt, self._max_retries, wait,
+                    attempt,
+                    self._max_retries,
+                    wait,
                 )
                 last_exc = exc
                 await asyncio.sleep(wait)
             except APIConnectionError as exc:
-                wait = 2 ** attempt
+                wait = 2**attempt
                 logger.warning(
                     "Connection error (attempt %d/%d). Retrying in %ds… %s",
-                    attempt, self._max_retries, wait, exc,
+                    attempt,
+                    self._max_retries,
+                    wait,
+                    exc,
                 )
                 last_exc = exc
                 await asyncio.sleep(wait)
@@ -235,9 +241,7 @@ class NemotronClient:
                 logger.error("OpenRouter API error: %s", exc)
                 raise
 
-        raise RuntimeError(
-            f"LLM call failed after {self._max_retries} retries."
-        ) from last_exc
+        raise RuntimeError(f"LLM call failed after {self._max_retries} retries.") from last_exc
 
 
 # ---------------------------------------------------------------------------
@@ -255,6 +259,7 @@ def get_nemotron_client() -> NemotronClient:
     global _client_instance
     if _client_instance is None:
         from backend.app.config import get_settings  # local import to avoid cycles
+
         s = get_settings()
         _client_instance = NemotronClient(
             api_key=s.openrouter_api_key,
@@ -277,6 +282,7 @@ def get_liquid_client() -> NemotronClient:
     global _liquid_client_instance
     if _liquid_client_instance is None:
         from backend.app.config import get_settings
+
         s = get_settings()
         _liquid_client_instance = NemotronClient(
             api_key=s.openrouter_api_key,
@@ -298,6 +304,7 @@ def get_llama_client() -> NemotronClient:
     global _llama_client_instance
     if _llama_client_instance is None:
         from backend.app.config import get_settings
+
         s = get_settings()
         _llama_client_instance = NemotronClient(
             api_key=s.openrouter_api_key,

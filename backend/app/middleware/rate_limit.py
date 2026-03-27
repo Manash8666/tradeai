@@ -36,9 +36,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             # Import here to avoid circular imports and allow graceful degradation
             import redis.asyncio as aioredis
 
-            redis_client = aioredis.from_url(
-                settings.redis_url, decode_responses=True
-            )
+            redis_client = aioredis.from_url(settings.redis_url, decode_responses=True)
 
             key = f"rate_limit:{client_ip}"
             current_time = int(time.time())
