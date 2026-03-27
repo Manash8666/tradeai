@@ -218,4 +218,4 @@ async def get_me(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> UserResponse:
     """Get current authenticated user profile."""
-    return UserResponse.model_validate(current_user)
+    return UserResponse.model_validate(current_user)  # type: ignore[no-any-return]

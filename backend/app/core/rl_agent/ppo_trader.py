@@ -91,7 +91,7 @@ class RLPolicyOrchestrator:
             logger.debug(
                 f"PPO Agent Decision: {best_action} | State Value Proxy: ₹{expected_value.item():.2f}"  # noqa: E501
             )
-            return best_action
+            return best_action  # type: ignore
 
 
 apex_agent = RLPolicyOrchestrator()

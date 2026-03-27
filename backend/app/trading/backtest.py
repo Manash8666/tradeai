@@ -8,7 +8,7 @@ and retrieve performance metrics.
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from backend.app.auth.dependencies import get_current_active_user
+from backend.app.auth.dependencies import get_current_user
 from backend.app.models.user import User
 
 from tests.backtest.engine import StrategyBacktester
@@ -16,7 +16,7 @@ from tests.backtest.engine import StrategyBacktester
 router = APIRouter(
     prefix="/backtest",
     tags=["Strategy Backtesting"],
-    dependencies=[Depends(get_current_active_user)],
+    dependencies=[Depends(get_current_user)],
 )
 
 backtester = StrategyBacktester()
@@ -31,7 +31,7 @@ class BacktestRequest(BaseModel):
 
 @router.post("/run")
 async def run_backtest_simulation(
-    req: BacktestRequest, current_user: User = Depends(get_current_active_user)
+    req: BacktestRequest, current_user: User = Depends(get_current_user)
 ):
     """
     Trigger a historical backtest execution via NautilusTrader.

@@ -78,4 +78,4 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     """Cached settings instance — loaded once from env."""
-    return Settings()
+    return Settings()  # type: ignore

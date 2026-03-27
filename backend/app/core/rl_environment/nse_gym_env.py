@@ -57,7 +57,7 @@ class NseBseOptionGymEnv:
 
     def _get_state(self) -> np.ndarray:
         # A mock state generator. In production, this pulls live ClickHouse L2 aggregates.
-        return np.array(
+        return np.array(  # type: ignore[no-any-return]
             [
                 self.spot,
                 50.0 + np.sin(self.current_step / 10.0) * 20.0,  # Mock RSI

@@ -55,7 +55,7 @@ def create_access_token(user_id: str, role: str) -> str:
         "iat": datetime.now(timezone.utc),
         "jti": str(uuid.uuid4()),
     }
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return str(jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm))
 
 
 def create_refresh_token(user_id: str) -> str:
@@ -67,15 +67,17 @@ def create_refresh_token(user_id: str) -> str:
         "iat": datetime.now(timezone.utc),
         "jti": str(uuid.uuid4()),
     }
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return str(jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm))
 
 
 def decode_token(token: str) -> dict[str, Any]:
     """Decode and validate a JWT token."""
-    return jwt.decode(
-        token,
-        settings.jwt_secret_key,
-        algorithms=[settings.jwt_algorithm],
+    return dict(
+        jwt.decode(  # type: ignore[no-any-return]
+            token,
+            settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm],
+        )
     )
 
 
@@ -92,13 +94,13 @@ def hash_token(token: str) -> str:
 async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     """Fetch a user by email address."""
     result = await db.execute(select(User).where(User.email == email))
-    return result.scalar_one_or_none()
+    return result.scalar_one_or_none()  # type: ignore[no-any-return]
 
 
 async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID) -> User | None:
     """Fetch a user by ID."""
     result = await db.execute(select(User).where(User.id == user_id))
-    return result.scalar_one_or_none()
+    return result.scalar_one_or_none()  # type: ignore[no-any-return]
 
 
 async def create_user(

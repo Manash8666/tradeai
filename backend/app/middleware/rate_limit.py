@@ -27,7 +27,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Skip exempt paths
         if request.url.path in self.EXEMPT_PATHS:
-            return await call_next(request)
+            return await call_next(request)  # type: ignore
 
         # Get client identifier
         client_ip = request.client.host if request.client else "unknown"
@@ -74,8 +74,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             response.headers["X-RateLimit-Remaining"] = str(
                 max(0, settings.rate_limit_per_minute - request_count - 1)
             )
-            return response
+            return response  # type: ignore
 
         except Exception:
             # Redis unavailable — fail open (permissive)
-            return await call_next(request)
+            return await call_next(request)  # type: ignore

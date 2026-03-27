@@ -100,9 +100,7 @@ class HeroZeroGammaScalper:
             # Vanna: dDelta / dVol. Determines directional bias under volatility regime shifts
             vanna = -pdf_d1 * d2 / iv
             # Charm: dDelta / dTime. Extremely violent on 0DTE options at 3:00 PM
-            charm = (
-                -pdf_d1 * (2 * r * T - d2 * iv * math.sqrt(T)) / (2 * T * iv * math.sqrt(T))
-            )
+            charm = -pdf_d1 * (2 * r * T - d2 * iv * math.sqrt(T)) / (2 * T * iv * math.sqrt(T))
 
             # Proprietary Hero-Zero "Explosion Profile" algorithm
             # High Gamma * Positive Vanna indicates an explosive asymmetrical payout

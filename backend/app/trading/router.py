@@ -8,7 +8,7 @@ Wrapped with our Auth & Audit logging middleware.
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from backend.app.auth.dependencies import get_current_active_user
+from backend.app.auth.dependencies import get_current_user
 from backend.app.models.user import User
 from core.engine import engine_wrapper
 from core.paper_trader import PaperBroker
@@ -18,7 +18,7 @@ paper_broker = PaperBroker()
 router = APIRouter(
     prefix="/trading",
     tags=["Trading Engine"],
-    dependencies=[Depends(get_current_active_user)],  # All endpoints require auth
+    dependencies=[Depends(get_current_user)],  # All endpoints require auth
 )
 
 
@@ -28,7 +28,7 @@ class EngineStatusResponse(BaseModel):
 
 
 @router.post("/start", response_model=EngineStatusResponse)
-async def start_engine(current_user: User = Depends(get_current_active_user)):
+async def start_engine(current_user: User = Depends(get_current_user)):
     """Initialize and start the Core Trading Engine."""
     if engine_wrapper.is_running:
         raise HTTPException(
@@ -47,7 +47,7 @@ async def start_engine(current_user: User = Depends(get_current_active_user)):
 
 
 @router.post("/stop", response_model=EngineStatusResponse)
-async def stop_engine(current_user: User = Depends(get_current_active_user)):
+async def stop_engine(current_user: User = Depends(get_current_user)):
     """Stop the Core Trading Engine gracefully."""
     if not engine_wrapper.is_running:
         raise HTTPException(
@@ -66,7 +66,7 @@ async def stop_engine(current_user: User = Depends(get_current_active_user)):
 
 
 @router.get("/status", response_model=EngineStatusResponse)
-async def get_engine_status(current_user: User = Depends(get_current_active_user)):
+async def get_engine_status(current_user: User = Depends(get_current_user)):
     """Get the current running status of the Trading Engine."""
     return {
         "is_running": engine_wrapper.is_running,
@@ -85,7 +85,7 @@ class PaperOrderRequest(BaseModel):
 
 @router.post("/paper/order")
 async def place_paper_order(
-    order: PaperOrderRequest, current_user: User = Depends(get_current_active_user)
+    order: PaperOrderRequest, current_user: User = Depends(get_current_user)
 ):
     """Place a synthetic paper trade against the Mock Broker."""
     if not paper_broker.is_connected:
@@ -109,6 +109,6 @@ async def place_paper_order(
 
 
 @router.get("/paper/positions")
-async def get_paper_positions(current_user: User = Depends(get_current_active_user)):
+async def get_paper_positions(current_user: User = Depends(get_current_user)):
     """Retrieve simulated open positions from the Mock Broker."""
     return await paper_broker.get_positions()

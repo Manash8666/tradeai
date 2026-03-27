@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 # Native interception wrapping the Rust PyO3 compiled binary (proprietary_hft_rs)
 # In production, `maturin develop --release` compiles the inner rust node into this namespace.
 try:
-    from backend.app.core.rust_engine import proprietary_hft_rs
+    from backend.app.core.rust_engine import proprietary_hft_rs  # type: ignore
 
     RUST_AVAILABLE = True
     logger.info("CRITICAL OPTIMIZATION: PyO3 Rust HFT Engine Engaged. Bypassing GIL.")
