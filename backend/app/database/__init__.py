@@ -51,5 +51,6 @@ async def init_db() -> None:
 
 
 async def close_db() -> None:
-    """Dispose engine on shutdown."""
+    """Dispose of the engine connection pool on application shutdown."""
     await engine.dispose()
+

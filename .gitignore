@@ -57,6 +57,8 @@ logs/
 *.db
 *.sqlite3
 data/volumes/
+backend/data/
+scratch/
 
 # ClickHouse
 clickhouse-data/

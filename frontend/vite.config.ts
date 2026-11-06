@@ -14,7 +14,22 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      '/trading': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/signals': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/backtest': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/auth': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
       },
     },
   },

@@ -115,3 +115,8 @@ class PaperBroker(BrokerAdapter):
     @property
     def broker_name(self) -> str:
         return "PaperBroker-Dev"
+
+
+# Shared singleton instance
+paper_broker = PaperBroker()
+

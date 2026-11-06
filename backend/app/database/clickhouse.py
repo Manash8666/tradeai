@@ -12,11 +12,15 @@ logger = logging.getLogger(__name__)
 
 # Global Clickhouse Client Singleton
 client = None
+_offline_fallback = False
 
 
 def get_clickhouse_client():
     """Returns the active Clickhouse connect client."""
-    global client
+    global client, _offline_fallback
+    if _offline_fallback:
+        raise ConnectionError("ClickHouse running in offline simulated mode")
+
     if client is None:
         try:
             # Assuming clickhouse is running on same network mesh, fallback to localhost
@@ -35,14 +39,20 @@ def get_clickhouse_client():
             )
             logger.info("Successfully connected to ClickHouse for Audit Logging.")
         except Exception as e:
-            logger.error(f"Failed to connect to ClickHouse: {e}")
+            if not settings.is_production:
+                _offline_fallback = True
+            logger.warning(f"Failed to connect to ClickHouse: {e} (Using offline fallback)")
             raise e
     return client
 
 
 def init_clickhouse():
     """Initializes the immutable Hash-Chained Audit table."""
-    c = get_clickhouse_client()
+    try:
+        c = get_clickhouse_client()
+    except Exception:
+        logger.warning("Clickhouse unavailable during init_clickhouse - skipping table creation in dev.")
+        return
 
     # We use MergeTree. It is append-only by default (mutations are heavy and visible).
     schema = """
@@ -69,10 +79,10 @@ def init_clickhouse():
 
 def get_latest_hash() -> str:
     """Retrieve the `current_hash` from the absolute latest row in the ledger."""
-    c = get_clickhouse_client()
     try:
+        c = get_clickhouse_client()
         res = c.query("SELECT current_hash FROM audit_logs ORDER BY timestamp DESC LIMIT 1")
         return res.result_rows[0][0] if res.result_rows else "GENESIS_BLOCK_00000000"
     except Exception as e:
-        logger.error(f"Failed to fetch previous hash: {e}")
+        logger.debug(f"Clickhouse get_latest_hash fallback: {e}")
         return "GENESIS_BLOCK_00000000"

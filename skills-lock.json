@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "fyers-supercharge": {
+      "source": "FyersDev/fyers-skills",
+      "sourceType": "github",
+      "skillPath": "skills/fyers-supercharge/SKILL.md",
+      "computedHash": "d9c97a8f4df59f422c92ea32c7109155a07432b4999adb975c72c70dcb106ef8"
+    },
+    "fyers-trading": {
+      "source": "FyersDev/fyers-skills",
+      "sourceType": "github",
+      "skillPath": "skills/fyers-trading/SKILL.md",
+      "computedHash": "2a2a1b8fc4f4e41b2c0af8c11bc14b00bd518f246ccfa1e6f8941092a4915378"
+    }
+  }
+}

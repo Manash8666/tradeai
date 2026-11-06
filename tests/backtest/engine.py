@@ -9,11 +9,20 @@ and outputs metrics like Sharpe, Max Drawdown, and Equity Curves.
 import logging
 from typing import Any, Dict
 
-from nautilus_trader.backtest.engine import BacktestEngine
-from nautilus_trader.backtest.engine import BacktestEngineConfig
-from nautilus_trader.model.currencies import OmsType
-from nautilus_trader.model.identifiers import Venue
-from nautilus_trader.model.objects import Money
+try:
+    from nautilus_trader.backtest.engine import BacktestEngine, BacktestEngineConfig
+    from nautilus_trader.model.currencies import OmsType
+    from nautilus_trader.model.identifiers import Venue
+    from nautilus_trader.model.objects import Money
+    NAUTILUS_AVAILABLE = True
+except ImportError:
+    BacktestEngine = None
+    BacktestEngineConfig = None
+    OmsType = None
+    Venue = lambda x: x  # type: ignore
+    Money = None
+    NAUTILUS_AVAILABLE = False
+
 
 logger = logging.getLogger(__name__)
 

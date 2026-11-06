@@ -52,6 +52,8 @@ def test_risk_manager_fat_finger():
 
 def test_risk_manager_leverage_violation():
     """Verify position sizing limit (Max 20% on 100K Account = 20K capital limit)."""
+    risk_manager.account.start_of_day_equity = 100_000.0
+    risk_manager.account.net_liquidity = 100_000.0
     # Placing an order valued at 30k (> 20k)
     with pytest.raises(RiskViolationException) as excinfo:
         risk_manager.validate_pre_trade("BANKNIFTY", "BUY", 1, 30000.0, 0)

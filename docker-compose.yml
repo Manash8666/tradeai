@@ -1,137 +1,154 @@
-# =============================================================================
-# Trading Platform — Docker Compose
-# All services with health checks + persistent volumes
-# =============================================================================
-
-services:
-  # --- PostgreSQL 15 ---
-  postgres:
-    image: postgres:15-alpine
-    container_name: tp-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-trading_platform}
-      POSTGRES_USER: ${POSTGRES_USER:-trading_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_change_me}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trading_user} -d ${POSTGRES_DB:-trading_platform}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - trading-network
-
-  # --- Redis 7 ---
-  redis:
-    image: redis:7-alpine
-    container_name: tp-redis
-    restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD:-dev_redis_password}
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-dev_redis_password}", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    networks:
-      - trading-network
-
-  # --- ClickHouse 23.8 ---
-  clickhouse:
-    image: clickhouse/clickhouse-server:23.8
-    container_name: tp-clickhouse
-    restart: unless-stopped
-    environment:
-      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-trading_analytics}
-      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
-      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-dev_clickhouse_password}
-    ports:
-      - "${CLICKHOUSE_HTTP_PORT:-8123}:8123"
-      - "${CLICKHOUSE_TCP_PORT:-9000}:9000"
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - trading-network
-
-  # --- Backend (FastAPI) ---
-  backend:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/backend.Dockerfile
-    container_name: tp-backend
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "${APP_PORT:-8000}:8000"
-    volumes:
-      - ./backend:/app/backend
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      clickhouse:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - trading-network
-
-  # --- Metrics & Observability ---
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: tp-prometheus
-    restart: unless-stopped
-    volumes:
-      - ./infrastructure/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - trading-network
-    depends_on:
-      - backend
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: tp-grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    networks:
-      - trading-network
-    depends_on:
-      - prometheus
-
-volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-  clickhouse_data:
-    driver: local
+version: "3.8"
 
 networks:
-  trading-network:
+  infra-net:
     driver: bridge
+
+volumes:
+  timescale_data:
+  redis_data:
+
+services:
+  # =========================================================================
+  # 1. Kernel-Bypass Network Driver (AF_XDP / DPDK)
+  # =========================================================================
+  afxdp-driver:
+    build:
+      context: ./docker/driver
+      dockerfile: Dockerfile
+    container_name: trading_afxdp_driver
+    restart: always
+    network_mode: "host"
+    ipc: "host"
+    privileged: true
+    cpuset: "2" # Dedicated physical core pinned strictly to packet RX/TX
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+    volumes:
+      - /dev/hugepages:/dev/hugepages:rw
+      - /dev/shm:/dev/shm:rw
+      - /sys/bus/pci:/sys/bus/pci:ro
+      - /sys/kernel/mm/hugepages:/sys/kernel/mm/hugepages:ro
+    environment:
+      - NIC_INTERFACE=eth0
+      - XDP_QUEUE_ID=0
+      - SHM_RING_NAME=/trading_l2_ring
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      rtprio:
+        soft: 99
+        hard: 99
+
+  # =========================================================================
+  # 2. Rust In-Memory Matching & Risk Engine
+  # =========================================================================
+  matching-engine:
+    build:
+      context: ./docker/matcher
+      dockerfile: Dockerfile
+    container_name: trading_matching_engine
+    restart: always
+    network_mode: "host"
+    ipc: "host"
+    cpuset: "3" # Dedicated physical core for deterministic order execution
+    cap_add:
+      - IPC_LOCK
+      - SYS_NICE
+    volumes:
+      - /dev/hugepages:/dev/hugepages:rw
+      - /dev/shm:/dev/shm:rw
+      - ./data/wal:/app/wal:rw
+    environment:
+      - SHM_RING_NAME=/trading_l2_ring
+      - REDIS_URL=redis://127.0.0.1:6379
+      - DB_URL=postgresql://quant:quant_secure_pass@127.0.0.1:5432/trading_db
+      - RUST_LOG=info
+    depends_on:
+      - afxdp-driver
+      - redis-bus
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      rtprio:
+        soft: 99
+        hard: 99
+
+  # =========================================================================
+  # 3. Python Neuro-Symbolic AI Agent (Inference + Macro Risk Guard)
+  # =========================================================================
+  ai-agent:
+    build:
+      context: ./docker/agent
+      dockerfile: Dockerfile
+    container_name: trading_ai_agent
+    restart: always
+    network_mode: "host"
+    ipc: "host"
+    cpuset: "4,5,6,7" # Multi-core partition for neural inference & asyncio
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - /dev/shm:/dev/shm:rw
+      - ./models:/app/models:ro
+    environment:
+      - REDIS_URL=redis://127.0.0.1:6379
+      - DB_URL=postgresql://quant:quant_secure_pass@127.0.0.1:5432/trading_db
+      - MODEL_PATH=/app/models/DeepSeek-R1-Distill-Q4_K_M.gguf
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - matching-engine
+      - redis-bus
+
+  # =========================================================================
+  # 4. Low-Latency Event Streaming (Redis Streams)
+  # =========================================================================
+  redis-bus:
+    image: redis:7-alpine
+    container_name: trading_redis_bus
+    restart: always
+    network_mode: "host"
+    cpuset: "1"
+    command: >
+      redis-server
+      --port 6379
+      --save ""
+      --appendonly no
+      --maxmemory 4gb
+      --maxmemory-policy allkeys-lru
+      --tcp-backlog 65535
+    volumes:
+      - redis_data:/data
+
+  # =========================================================================
+  # 5. TimescaleDB (Audit Trail, Ledger, and SEBI Compliance Log)
+  # =========================================================================
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: trading_timescaledb
+    restart: always
+    network_mode: "host"
+    cpuset: "0,1"
+    environment:
+      - POSTGRES_USER=quant
+      - POSTGRES_PASSWORD=quant_secure_pass
+      - POSTGRES_DB=trading_db
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./docker/init_schema.sql:/docker-entrypoint-initdb.d/01_init.sql
+    command: >
+      postgres
+      -c shared_buffers=2GB
+      -c work_mem=64MB
+      -c synchronous_commit=off
+      -c wal_writer_delay=100ms

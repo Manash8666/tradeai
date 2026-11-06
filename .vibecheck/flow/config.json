@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "projectName": "Trading Platform",
+  "userName": "developer",
+  "skillLevel": "intermediate",
+  "outputFolder": ".vibecheck/flow",
+  "planningArtifacts": ".vibecheck\\flow\\planning-artifacts",
+  "implementationArtifacts": ".vibecheck\\flow\\implementation-artifacts",
+  "installedAt": "2026-05-11T16:55:55.642Z",
+  "ide": [
+    "vscode"
+  ]
+}

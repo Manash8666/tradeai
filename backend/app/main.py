@@ -26,6 +26,11 @@ from ai_agent.router import router as ai_router
 from ai_agent.thinking_router import router as thinking_router
 from ai_agent.chat_router import router as chat_router
 from backend.app.orchestrator.router import router as orchestrator_router
+from backend.app.integrations.tradingview_bridge import router as tradingview_router
+from ai_agent.mirajane.bot_router import router as mirajane_router
+from backend.app.trading.options_router import router as options_router
+from backend.app.trading.paper_router import router as paper_router
+from backend.app.trading.hft_router import router as hft_router
 from prometheus_fastapi_instrumentator import Instrumentator
 
 settings = get_settings()
@@ -85,6 +90,11 @@ app.include_router(ai_router)
 app.include_router(thinking_router)
 app.include_router(chat_router)
 app.include_router(orchestrator_router)
+app.include_router(tradingview_router)
+app.include_router(mirajane_router)
+app.include_router(options_router)
+app.include_router(paper_router)
+app.include_router(hft_router)
 
 # --- Instrumentation ---
 Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)
@@ -96,6 +106,7 @@ Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzi
 
 
 @app.get("/health", tags=["System"])
+@app.get("/api/health", tags=["System"])
 async def health_check() -> dict:
     """
     System health check endpoint.
@@ -111,6 +122,7 @@ async def health_check() -> dict:
 
 
 @app.get("/compliance/status", tags=["Compliance"])
+@app.get("/api/compliance/status", tags=["Compliance"])
 async def compliance_status(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
@@ -126,7 +138,7 @@ async def compliance_status(
             "ip_rotation_code": False,  # Must always be False
             "data_source_licensed": settings.is_production,
             "jwt_httponly_cookies": True,
-            "engine_attribution": "Proprietary HFT Algorithmic Core",
+            "engine_attribution": "Proprietary HFT Algorithmic Core (NautilusTrader Engine)",
             "algo_id_support": True,
         },
         "timestamp": datetime.now(timezone.utc).isoformat(),

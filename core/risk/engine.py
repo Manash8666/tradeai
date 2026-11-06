@@ -31,8 +31,8 @@ class RiskConfig(BaseModel):
 class AccountState(BaseModel):
     """Snapshot of account equity and margins."""
 
-    net_liquidity: float = 100_000.0  # ₹1 Lakh simulated
-    start_of_day_equity: float = 100_000.0
+    net_liquidity: float = 10_000_000.0  # ₹1 Crore institutional capital
+    start_of_day_equity: float = 10_000_000.0
     reserved_margin: float = 0.0
 
 

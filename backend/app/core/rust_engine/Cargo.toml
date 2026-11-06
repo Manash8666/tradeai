@@ -1,16 +1,27 @@
 [package]
 name = "proprietary_hft_rs"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["AI Trading Platform Core Engineering"]
-description = "High-Frequency Trading Message Bus and Order Management System"
+description = "Institutional High-Frequency Trading Engine, Zero-Copy Kernel Bypass & Arbitrage Core"
 
 [lib]
 name = "proprietary_hft_rs"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 pyo3 = { version = "0.20", features = ["extension-module"] }
 tokio = { version = "1.35", features = ["full"] }
 crossbeam-channel = "0.5"
+crossbeam-epoch = "0.9"
+parking_lot = "0.12"
+statrs = "0.16"
 log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rocksdb = { version = "0.21", features = ["snappy"] }
+xsk-rs = "0.7"
+libc = "0.2"
+wasmtime = "14.0"
