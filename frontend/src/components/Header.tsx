@@ -11,6 +11,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { useTheme } from '../store/ThemeContext';
+import { BrokerGatewaySelector } from './BrokerGatewaySelector';
 
 export type ActivePlatformView = 'showcase' | 'live_trading' | 'strategy_builder' | 'mirajane' | 'dashboard';
 
@@ -156,6 +157,9 @@ export function Header({ currentView = 'showcase', onSelectView }: HeaderProps) 
 
       {/* ── RIGHT: Real-time Telemetry & Theme Toggle ── */}
       <div className="flex items-center gap-3">
+        {/* Multi-Broker Gateway Routing Selector */}
+        <BrokerGatewaySelector />
+
         {/* Direct Market Access / OMS Status */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

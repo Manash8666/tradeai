@@ -31,6 +31,7 @@ from ai_agent.mirajane.bot_router import router as mirajane_router
 from backend.app.trading.options_router import router as options_router
 from backend.app.trading.paper_router import router as paper_router
 from backend.app.trading.hft_router import router as hft_router
+from backend.app.trading.morning_scheduler import morning_market_scheduler
 from prometheus_fastapi_instrumentator import Instrumentator
 
 settings = get_settings()
@@ -47,8 +48,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     if not settings.is_production:
         await init_db()  # Auto-create tables in dev/test
+    await morning_market_scheduler.start()
     yield
     # Shutdown
+    await morning_market_scheduler.stop()
     await engine_wrapper.stop()
     await close_db()
 

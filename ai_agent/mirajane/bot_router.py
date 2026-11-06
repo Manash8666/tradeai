@@ -336,7 +336,7 @@ async def get_market_candles(
     Returns realistic multi-horizon candles for any stock, future, or commodity
     calibrated to the exact November 2026 timeline.
     """
-    return market_data_service.get_historical_candles(symbol=symbol, horizon=horizon)
+    return await market_data_service.get_historical_candles_async(symbol=symbol, horizon=horizon)
 
 
 @router.get("/market/premarket", summary="Daily 09:00 IST Morning Pre-Market Sync")

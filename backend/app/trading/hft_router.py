@@ -366,3 +366,18 @@ async def get_live_market_quote(symbol: str = Query(default="NIFTY")):
     """
     return await live_market_scraper.get_live_quote(symbol=symbol)
 
+
+from backend.app.trading.morning_scheduler import (
+    morning_market_scheduler,
+    MarketScheduleStatus,
+)
+
+
+@router.get("/market_schedule", response_model=MarketScheduleStatus)
+def get_market_schedule_status():
+    """
+    Indian Market Session Status & 09:00 IST Morning Routine Lifecycle.
+    """
+    return morning_market_scheduler.get_session_state()
+
+

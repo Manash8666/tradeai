@@ -11,6 +11,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 import zoneinfo
+from backend.app.trading.live_market_scraper import live_market_scraper
 
 logger = logging.getLogger(__name__)
 IST = zoneinfo.ZoneInfo("Asia/Kolkata")
@@ -155,6 +156,25 @@ HORIZONS_CONFIG = {
 }
 
 
+HORIZON_FEED_MAP = {
+    "1h": {"interval": "1m", "range": "1d"},
+    "3h": {"interval": "2m", "range": "1d"},
+    "6h": {"interval": "5m", "range": "1d"},
+    "12h": {"interval": "5m", "range": "1d"},
+    "24h": {"interval": "5m", "range": "1d"},
+    "48h": {"interval": "15m", "range": "5d"},
+    "72h": {"interval": "30m", "range": "5d"},
+    "10d": {"interval": "60m", "range": "1mo"},
+    "15d": {"interval": "1d", "range": "1mo"},
+    "30d": {"interval": "1d", "range": "3mo"},
+    "45d": {"interval": "1d", "range": "3mo"},
+    "60d": {"interval": "1d", "range": "6mo"},
+    "90d": {"interval": "1d", "range": "6mo"},
+    "180d": {"interval": "1d", "range": "1y"},
+    "365d": {"interval": "1d", "range": "2y"},
+}
+
+
 class MarketDataService:
     """
     High-throughput Market Data Service generating mathematically consistent,
@@ -163,7 +183,11 @@ class MarketDataService:
     """
 
     def __init__(self):
-        self.now_ist = datetime(CURRENT_YEAR, CURRENT_MONTH, CURRENT_DAY, 23, 58, 0, tzinfo=IST)
+        self.now_ist = datetime.now(IST)
+
+    @property
+    def current_now_ist(self) -> datetime:
+        return datetime.now(IST)
 
     def get_supported_symbols(self) -> List[Dict[str, Any]]:
         return [
@@ -177,13 +201,76 @@ class MarketDataService:
             for h, meta in HORIZONS_CONFIG.items()
         ]
 
+    async def get_historical_candles_async(
+        self,
+        symbol: str = "NIFTY",
+        horizon: str = "24h",
+    ) -> Dict[str, Any]:
+        """
+        Fetches today's real exchange intraday candles first; falls back to procedural model.
+        """
+        sym_key = symbol.upper()
+        meta = ASSETS_CATALOG.get(sym_key, ASSETS_CATALOG.get("NIFTY"))
+        h_meta = HORIZONS_CONFIG.get(horizon, HORIZONS_CONFIG.get("24h"))
+        feed_config = HORIZON_FEED_MAP.get(horizon, {"interval": "5m", "range": "1d"})
+
+        # 1. Attempt live market exchange stream
+        try:
+            live_candles = await live_market_scraper.get_intraday_candles(
+                symbol=sym_key,
+                interval=feed_config["interval"],
+                range_str=feed_config["range"],
+            )
+            if live_candles and len(live_candles) > 0:
+                formatted_candles = []
+                for c in live_candles:
+                    ts = int(c["time"])
+                    bar_dt = datetime.fromtimestamp(ts, tz=IST)
+                    formatted_candles.append({
+                        "time": ts,
+                        "unix_timestamp": ts,
+                        "timestamp_iso": bar_dt.isoformat(),
+                        "time_str": bar_dt.strftime("%d %b %H:%M"),
+                        "open": round(float(c["open"]), 2),
+                        "high": round(float(c["high"]), 2),
+                        "low": round(float(c["low"]), 2),
+                        "close": round(float(c["close"]), 2),
+                        "volume": int(c.get("volume", 0)),
+                    })
+                first_price = formatted_candles[0]["open"]
+                last_price = formatted_candles[-1]["close"]
+                price_change = round(last_price - first_price, 2)
+                price_change_pct = round((price_change / first_price) * 100, 2) if first_price else 0.0
+
+                return {
+                    "symbol": sym_key,
+                    "name": meta["name"] if meta else sym_key,
+                    "category": meta["category"] if meta else "EQUITY",
+                    "horizon": horizon,
+                    "horizon_label": h_meta["label"] if h_meta else horizon,
+                    "current_spot": last_price,
+                    "start_price": first_price,
+                    "price_change": price_change,
+                    "price_change_pct": price_change_pct,
+                    "candles_count": len(formatted_candles),
+                    "candles": formatted_candles,
+                    "feed_source": "NSE_LIVE_EXCHANGE_TAPE",
+                    "current_date_ist": self.current_now_ist.strftime("%d %B %Y, %A (IST)"),
+                }
+        except Exception as e:
+            logger.warning("Live stream candle fallback for %s: %s", symbol, e)
+
+        # 2. Resilient procedural mathematical series ending at today right now
+        return self.get_historical_candles(symbol=symbol, horizon=horizon)
+
     def get_historical_candles(
         self,
         symbol: str = "NIFTY",
         horizon: str = "24h",
     ) -> Dict[str, Any]:
         """
-        Generates realistic multi-horizon historical OHLCV data for any asset.
+        Generates realistic multi-horizon historical OHLCV data for any asset,
+        calibrated dynamically to today's exact date and time.
         """
         sym_key = symbol.upper()
         meta = ASSETS_CATALOG.get(sym_key, ASSETS_CATALOG["NIFTY"])
@@ -199,13 +286,14 @@ class MarketDataService:
             vol_pct = 0.018
 
         candles: List[Dict[str, Any]] = []
-        end_time = self.now_ist
+        end_time = datetime.now(IST)
         start_time = end_time - timedelta(minutes=num_bars * step_mins)
 
-        current_price = base_spot * (1.0 - (num_bars * 0.0003))  # slight upward bias over time
+        current_price = base_spot * (1.0 - (num_bars * 0.0003))
 
         for i in range(num_bars):
             bar_time = start_time + timedelta(minutes=i * step_mins)
+            ts = int(bar_time.timestamp())
 
             # Mathematical multi-frequency drift
             cyclical_1 = math.sin(i * 0.2) * (base_spot * vol_pct * 0.4)
@@ -232,7 +320,9 @@ class MarketDataService:
             time_str = bar_time.strftime("%d %b %H:%M") if step_mins < 1440 else bar_time.strftime("%d %b %Y")
 
             candles.append({
-                "time": time_str,
+                "time": ts,
+                "unix_timestamp": ts,
+                "time_str": time_str,
                 "timestamp_iso": bar_time.isoformat(),
                 "open": round(open_p, 2),
                 "high": round(high_p, 2),
@@ -266,7 +356,8 @@ class MarketDataService:
             "price_change_pct": price_change_pct,
             "candles_count": len(candles),
             "candles": candles,
-            "current_date_ist": self.now_ist.strftime("%d %B %Y, %A (IST)"),
+            "feed_source": "SIMULATED_RECOVERY_TAPE",
+            "current_date_ist": self.current_now_ist.strftime("%d %B %Y, %A (IST)"),
         }
 
     def get_morning_premarket_cues(self) -> Dict[str, Any]:

@@ -22,9 +22,11 @@ import axios from 'axios';
 import { TradingViewChart } from '../components/TradingViewChart';
 import { HftArbitrageMonitor } from '../components/HftArbitrageMonitor';
 import { DealerGexRadar } from '../components/DealerGexRadar';
+import { AlgoSlicingPanel } from '../components/AlgoSlicingPanel';
+import { EdgeScanPanel } from '../components/EdgeScanPanel';
 
 interface Candle {
-  time: string;
+  time: number | string;
   open: number;
   high: number;
   low: number;
@@ -109,7 +111,7 @@ export function LiveTradingDesk() {
   const [premarketCues, setPremarketCues] = useState<any>(null);
 
   const [activeTabBottom, setActiveTabBottom] = useState<
-    'positions' | 'orders' | 'hft_arbitrage' | 'dealer_gex' | 'post_mortem' | 'ledger'
+    'positions' | 'orders' | 'hft_arbitrage' | 'dealer_gex' | 'algo_slicing' | 'edge_radar' | 'post_mortem' | 'ledger'
   >('positions');
 
   // Trade Execution State
@@ -284,7 +286,7 @@ export function LiveTradingDesk() {
       if (res.data && res.data.candles && res.data.candles.length > 0) {
         setCandles(
           res.data.candles.map((c: any) => ({
-            time: c.time,
+            time: typeof c.time === 'number' ? c.time : (c.unix_timestamp || c.time),
             open: c.open,
             high: c.high,
             low: c.low,
@@ -299,13 +301,15 @@ export function LiveTradingDesk() {
       // Procedural fallback
       const list: Candle[] = [];
       let cur = selectedAsset.spot;
+      const nowSec = Math.floor(Date.now() / 1000);
       for (let i = 0; i < 35; i++) {
         const delta = (Math.sin(i * 0.4) + (Math.random() - 0.48)) * (selectedAsset.spot * 0.0015);
         const open = cur;
         const close = open + delta;
         const high = Math.max(open, close) + Math.abs(Math.cos(i)) * (selectedAsset.spot * 0.0005);
         const low = Math.min(open, close) - Math.abs(Math.sin(i)) * (selectedAsset.spot * 0.0005);
-        list.push({ time: `Bar-${i + 1}`, open, high, low, close, volume: 25000 + i * 500 });
+        const barTime = nowSec - (35 - i) * 300;
+        list.push({ time: barTime, open, high, low, close, volume: 25000 + i * 500 });
         cur = close;
       }
       setCandles(list);
@@ -316,6 +320,8 @@ export function LiveTradingDesk() {
 
   useEffect(() => {
     fetchCandles();
+    const interval = setInterval(fetchCandles, 10000);
+    return () => clearInterval(interval);
   }, [fetchCandles]);
 
   useEffect(() => {
@@ -911,6 +917,8 @@ export function LiveTradingDesk() {
               { id: 'orders' as const, label: 'Pending Limit Orders (0)' },
               { id: 'hft_arbitrage' as const, label: 'HFT Arbitrage (NSE–BSE)' },
               { id: 'dealer_gex' as const, label: 'Dealer GEX & 0DTE Math' },
+              { id: 'algo_slicing' as const, label: 'Algo Slicing (VWAP/TWAP)' },
+              { id: 'edge_radar' as const, label: 'Microstructure Edge Radar' },
               { id: 'post_mortem' as const, label: 'Behavioral Post-Mortems & Analytics' },
               { id: 'ledger' as const, label: 'SEBI Double-Entry Audit' },
             ].map((tab) => (
@@ -1022,6 +1030,16 @@ export function LiveTradingDesk() {
         {/* TAB 2C: Dealer Aggregate GEX & 0DTE Math Lab */}
         {activeTabBottom === 'dealer_gex' && (
           <DealerGexRadar />
+        )}
+
+        {/* TAB 2D: Institutional Algorithmic Slicing Cockpit */}
+        {activeTabBottom === 'algo_slicing' && (
+          <AlgoSlicingPanel />
+        )}
+
+        {/* TAB 2E: KIRA Microstructure Edge Radar */}
+        {activeTabBottom === 'edge_radar' && (
+          <EdgeScanPanel />
         )}
 
         {/* TAB 3: Behavioral Post-Mortem & Analytics (GAP 3 SOLUTION) */}
