@@ -306,7 +306,7 @@ export function EdgeScanPanel() {
               </span>
 
               <div className="space-y-1.5">
-                {report.support_resistance.map((level, i) => {
+                {Array.isArray(report.support_resistance) && report.support_resistance.map((level, i) => {
                   const isResistance = level.level_type.includes('RESISTANCE');
                   const isPivot = level.level_type.includes('PIVOT');
 
@@ -363,7 +363,7 @@ export function EdgeScanPanel() {
               </span>
 
               <div className="space-y-1.5">
-                {report.patterns.map((pat, i) => (
+                {Array.isArray(report.patterns) && report.patterns.map((pat, i) => (
                   <div
                     key={i}
                     className={`p-2 rounded-lg border flex items-center justify-between font-mono text-xs ${

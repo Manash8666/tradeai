@@ -48,7 +48,7 @@ export function OptionChainTable({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflowX: 'auto' }}>
-          {data.expiries.map((exp, idx) => {
+          {Array.isArray(data?.expiries) && data.expiries.map((exp, idx) => {
             const isSelected = selectedExpiryIdx === idx;
             return (
               <button
@@ -123,7 +123,7 @@ export function OptionChainTable({
           </thead>
 
           <tbody>
-            {data.strikes.map((s) => {
+            {Array.isArray(data?.strikes) && data.strikes.map((s) => {
               const callLeg = getLegForStrike(s.strike, 'CE');
               const putLeg = getLegForStrike(s.strike, 'PE');
               const isAtm = s.is_atm;

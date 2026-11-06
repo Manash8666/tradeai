@@ -84,6 +84,35 @@ const ASSET_CLASSES: AssetClass[] = [
   { symbol: 'MCX SILVER', code: 'SILVER', spot: 94250.00, change: 840.00, changePct: 0.90, lotSize: 30, step: 500, category: 'COMMODITY' },
 ];
 
+const DEFAULT_CONTEXTUAL_EVENTS = [
+  {
+    event_id: 'evt-macro-1',
+    macro_theme: 'RBI MONETARY POLICY',
+    urgency: 'HIGH IMPACT',
+    source: 'Bloomberg Dalal Street',
+    time_ago_mins: 14,
+    headline: 'RBI Maintains Accommodative Stance with System Liquidity Surplus at ₹1.4 Lakh Cr',
+    summary: 'Governor emphasizes inflation trajectory alignment towards 4% target while credit growth remains robust at 13.8% YoY.',
+    impacts: [
+      { symbol: 'BANKNIFTY', sentiment_score: 0.75, impact_direction: 'BULLISH', tactical_play: 'Accumulate 51200 CE on 15m VWAP test' },
+      { symbol: 'HDFCBANK', sentiment_score: 0.62, impact_direction: 'BULLISH', tactical_play: 'Long breakout above 1745' },
+    ],
+  },
+  {
+    event_id: 'evt-macro-2',
+    macro_theme: 'GLOBAL ENERGY & OMO',
+    urgency: 'MEDIUM IMPACT',
+    source: 'Reuters Macro Wires',
+    time_ago_mins: 38,
+    headline: 'Brent Crude Rebounds to $74.80/bbl Ahead of OPEC+ Quota Decision',
+    summary: 'Upstream exploration margins expand while airline and paint equities experience short-term cost resistance.',
+    impacts: [
+      { symbol: 'RELIANCE', sentiment_score: 0.54, impact_direction: 'BULLISH', tactical_play: 'Bull call spread 2980/3020' },
+      { symbol: 'NIFTY', sentiment_score: 0.12, impact_direction: 'NEUTRAL', tactical_play: 'Iron Condor 24400-24800' },
+    ],
+  },
+];
+
 // The 15 Mandatory Lookback Horizons
 const LOOKBACK_HORIZONS = [
   { id: '1h', label: '1H', desc: '1 Hour (1m)' },
@@ -225,8 +254,8 @@ export function LiveTradingDesk() {
           }))
         );
       }
-      if (trdRes.data) {
-        setCompletedTrades(trdRes.data.trades || []);
+      if (trdRes.data && Array.isArray(trdRes.data.trades)) {
+        setCompletedTrades(trdRes.data.trades);
       }
     } catch (e) {
       console.error('Failed to sync institutional paper account:', e);
@@ -247,10 +276,17 @@ export function LiveTradingDesk() {
           axios.get(`/api/paper/contextual_news/${selectedAsset.code}`),
           axios.get('/api/paper/contextual_news'),
         ]);
-        setContextualSentiment(symRes.data);
-        setAllContextualEvents(allRes.data);
+        if (symRes.data && typeof symRes.data === 'object' && !Array.isArray(symRes.data)) {
+          setContextualSentiment(symRes.data);
+        }
+        if (Array.isArray(allRes.data) && allRes.data.length > 0) {
+          setAllContextualEvents(allRes.data);
+        } else {
+          setAllContextualEvents(DEFAULT_CONTEXTUAL_EVENTS);
+        }
       } catch (e) {
         console.error('Failed to fetch contextual news:', e);
+        setAllContextualEvents(DEFAULT_CONTEXTUAL_EVENTS);
       }
     };
     fetchContext();
@@ -871,7 +907,7 @@ export function LiveTradingDesk() {
                   <span>QTY</span>
                   <span>BID</span>
                 </div>
-                {orderBook.bids.map((b, i) => (
+                {Array.isArray(orderBook?.bids) && orderBook.bids.map((b, i) => (
                   <div key={i} className="flex justify-between relative py-0.5">
                     <div
                       className="absolute inset-y-0 right-0 bg-emerald-500/10 pointer-events-none rounded"
@@ -891,7 +927,7 @@ export function LiveTradingDesk() {
                   <span>QTY</span>
                   <span>ORDERS</span>
                 </div>
-                {orderBook.asks.map((a, i) => (
+                {Array.isArray(orderBook?.asks) && orderBook.asks.map((a, i) => (
                   <div key={i} className="flex justify-between relative py-0.5">
                     <div
                       className="absolute inset-y-0 left-0 bg-rose-500/10 pointer-events-none rounded"
@@ -952,7 +988,7 @@ export function LiveTradingDesk() {
         {/* TAB 1: Positions Table */}
         {activeTabBottom === 'positions' && (
           <div className="overflow-x-auto">
-            {positions.length === 0 ? (
+            {!Array.isArray(positions) || positions.length === 0 ? (
               <div className="py-8 text-center text-xs font-mono text-slate-500">
                 No active open positions. Place an order above to begin institutional execution.
               </div>
@@ -973,7 +1009,7 @@ export function LiveTradingDesk() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.03]">
-                  {positions.map((pos) => (
+                  {Array.isArray(positions) && positions.map((pos) => (
                     <tr key={pos.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="py-2.5 font-bold text-white flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -1112,14 +1148,14 @@ export function LiveTradingDesk() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.02]">
-                  {completedTrades.length === 0 ? (
+                  {!Array.isArray(completedTrades) || completedTrades.length === 0 ? (
                     <tr>
                       <td colSpan={10} className="py-4 text-center text-slate-500">
                         No closed round-trip trades recorded yet.
                       </td>
                     </tr>
                   ) : (
-                    completedTrades.map((t: any) => (
+                    Array.isArray(completedTrades) && completedTrades.map((t: any) => (
                       <tr key={t.trade_id} className="hover:bg-white/[0.02]">
                         <td className="py-2 text-slate-400">{t.trade_id}</td>
                         <td className="py-2 text-white font-bold">{t.symbol}</td>
@@ -1217,7 +1253,7 @@ export function LiveTradingDesk() {
             </div>
 
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-              {allContextualEvents.map((evt: any) => (
+              {Array.isArray(allContextualEvents) && allContextualEvents.map((evt: any) => (
                 <div
                   key={evt.event_id}
                   className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2 hover:border-cyan-500/30 transition-all"
@@ -1235,7 +1271,7 @@ export function LiveTradingDesk() {
                   <div className="pt-2 border-t border-white/[0.04] space-y-1">
                     <span className="text-[10px] text-slate-400 uppercase font-bold">AFFECTED INSTRUMENTS & TACTICAL PLAYS:</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-                      {evt.impacts.map((imp: any) => (
+                      {Array.isArray(evt.impacts) && evt.impacts.map((imp: any) => (
                         <div
                           key={imp.symbol}
                           className="p-2 rounded-lg bg-black/40 border border-white/[0.04] flex items-center justify-between"
@@ -1462,12 +1498,12 @@ export function LiveTradingDesk() {
                 <div className="space-y-1">
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">Applied Invariants & Guards:</span>
                   <div className="flex flex-wrap gap-1.5">
-                    {neuroVerdict.applied_guards?.map((g: string, i: number) => (
+                    {Array.isArray(neuroVerdict.applied_guards) && neuroVerdict.applied_guards.map((g: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 rounded bg-white/[0.04] text-[10px] text-emerald-300 border border-emerald-500/20">
                         ✓ {g}
                       </span>
                     ))}
-                    {neuroVerdict.rejection_reasons?.map((r: string, i: number) => (
+                    {Array.isArray(neuroVerdict.rejection_reasons) && neuroVerdict.rejection_reasons.map((r: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 rounded bg-rose-500/15 text-[10px] text-rose-300 border border-rose-500/30">
                         ✗ {r}
                       </span>

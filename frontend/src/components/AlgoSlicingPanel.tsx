@@ -90,7 +90,10 @@ export function AlgoSlicingPanel() {
     generatePlan();
   }, [symbol, side, algo, totalQuantity, durationMinutes, participationRate]);
 
-  const maxWeight = plan ? Math.max(...plan.slices.map((s) => s.participation_weight), 0.01) : 1;
+  const maxWeight =
+    plan && Array.isArray(plan.slices) && plan.slices.length > 0
+      ? Math.max(...plan.slices.map((s) => s.participation_weight), 0.01)
+      : 1;
 
   return (
     <div className="p-4 sm:p-5 rounded-2xl bg-[#090d16] border border-white/[0.08] shadow-2xl space-y-4">
@@ -331,7 +334,7 @@ export function AlgoSlicingPanel() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
-                {plan.slices.map((slice) => {
+                {Array.isArray(plan?.slices) && plan.slices.map((slice) => {
                   const minutes = Math.floor(slice.time_offset_seconds / 60);
                   const seconds = slice.time_offset_seconds % 60;
                   const timeFormatted = `+${minutes}m ${seconds.toString().padStart(2, '0')}s`;

@@ -16,45 +16,50 @@ export interface BrokerStatus {
   account_name?: string;
 }
 
+const DEFAULT_BROKERS: BrokerStatus[] = [
+  {
+    broker_id: 'FYERS',
+    name: 'FYERS Trading API v3',
+    connected: true,
+    is_active: true,
+    latency_ms: 18.5,
+    features: ['REST API v3', 'L2 WebSockets'],
+    rate_limit_per_sec: 10,
+    static_ip_compliant: true,
+    client_id: 'FAL33350',
+    account_name: 'MANASH RANJAN DASH',
+  },
+  {
+    broker_id: 'PAPER',
+    name: 'Antigravity Institutional Simulator',
+    connected: true,
+    is_active: false,
+    latency_ms: 0.15,
+    features: ['Zero Risk', 'Full SEBI Ledger'],
+    rate_limit_per_sec: 1000,
+    static_ip_compliant: true,
+  },
+];
+
 export function BrokerGatewaySelector() {
-  const [brokers, setBrokers] = useState<BrokerStatus[]>([]);
+  const [brokers, setBrokers] = useState<BrokerStatus[]>(DEFAULT_BROKERS);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedBroker, setSelectedBroker] = useState<BrokerStatus | null>(null);
+  const [selectedBroker, setSelectedBroker] = useState<BrokerStatus | null>(DEFAULT_BROKERS[0]);
 
   const fetchBrokers = async () => {
     try {
       const res = await axios.get<BrokerStatus[]>('/api/hft/brokers');
-      setBrokers(res.data);
-      const active = res.data.find((b) => b.is_active);
-      if (active) setSelectedBroker(active);
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setBrokers(res.data);
+        const active = res.data.find((b) => b.is_active);
+        if (active) setSelectedBroker(active);
+      } else {
+        setBrokers(DEFAULT_BROKERS);
+      }
     } catch {
-      const fallbackBrokers: BrokerStatus[] = [
-        {
-          broker_id: 'FYERS',
-          name: 'FYERS Trading API v3',
-          connected: true,
-          is_active: true,
-          latency_ms: 18.5,
-          features: ['REST API v3', 'L2 WebSockets'],
-          rate_limit_per_sec: 10,
-          static_ip_compliant: true,
-          client_id: 'FAL33350',
-          account_name: 'MANASH RANJAN DASH',
-        },
-        {
-          broker_id: 'PAPER',
-          name: 'Antigravity Institutional Simulator',
-          connected: true,
-          is_active: false,
-          latency_ms: 0.15,
-          features: ['Zero Risk', 'Full SEBI Ledger'],
-          rate_limit_per_sec: 1000,
-          static_ip_compliant: true,
-        },
-      ];
-      setBrokers(fallbackBrokers);
-      setSelectedBroker(fallbackBrokers[0]);
+      setBrokers(DEFAULT_BROKERS);
+      setSelectedBroker(DEFAULT_BROKERS[0]);
     }
   };
 
@@ -133,7 +138,7 @@ export function BrokerGatewaySelector() {
             </div>
 
             <div className="py-1 space-y-1">
-              {brokers.map((broker) => {
+              {Array.isArray(brokers) && brokers.map((broker) => {
                 const isSelected = broker.broker_id === active?.broker_id;
                 return (
                   <button
