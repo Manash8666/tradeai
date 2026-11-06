@@ -19,6 +19,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import axios from 'axios';
+import { usePortfolioStore } from '../store/portfolioStore';
 import { TradingViewChart } from '../components/TradingViewChart';
 import { HftArbitrageMonitor } from '../components/HftArbitrageMonitor';
 import { DealerGexRadar } from '../components/DealerGexRadar';
@@ -155,6 +156,19 @@ export function LiveTradingDesk() {
   const [execMessage, setExecMessage] = useState<string | null>(null);
 
   // Institutional Engine Data States
+  const { mirajaneTrades, closeMirajaneTrade } = usePortfolioStore();
+  const activeMirajaneTrade = useMemo(() => {
+    return (
+      mirajaneTrades.find(
+        (t) =>
+          (t.symbol === selectedAsset.code ||
+            t.symbol === selectedAsset.symbol ||
+            (selectedAsset.code === 'NIFTY' && t.symbol === 'NIFTY')) &&
+          t.active
+      ) || null
+    );
+  }, [mirajaneTrades, selectedAsset]);
+
   const [accountSummary, setAccountSummary] = useState<any>(null);
   const [positions, setPositions] = useState<PositionItem[]>([]);
   const [completedTrades, setCompletedTrades] = useState<any[]>([]);
@@ -796,6 +810,8 @@ export function LiveTradingDesk() {
             spot={selectedAsset.spot}
             height="100%"
             timeframe={selectedHorizon}
+            mirajaneTrade={activeMirajaneTrade}
+            onSquareOffTrade={closeMirajaneTrade}
             onTimeframeChange={(tf) => setSelectedHorizon(tf)}
             onQuickTrade={(side, _price, lots) => {
               setOrderSide(side);

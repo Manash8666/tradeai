@@ -75,7 +75,7 @@ function App() {
               </div>
 
               <ErrorBoundary fallbackTitle="Mirajane Autonomous Bot">
-                <MirajaneBotPanel />
+                <MirajaneBotPanel onSelectView={setCurrentView} />
               </ErrorBoundary>
             </div>
           )}

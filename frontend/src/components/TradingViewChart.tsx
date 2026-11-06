@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import type { MirajaneTrade } from '../store/portfolioStore';
 import {
   createChart,
   CandlestickSeries,
@@ -58,6 +59,8 @@ export interface TradingViewChartProps {
   showVolumeByDefault?: boolean;
   showEMAsByDefault?: boolean;
   timeframe?: string;
+  mirajaneTrade?: MirajaneTrade | null;
+  onSquareOffTrade?: (id: string) => void;
   onTimeframeChange?: (tf: string) => void;
   onQuickTrade?: (side: 'BUY' | 'SELL', price: number, lots: number) => void;
   className?: string;
@@ -170,6 +173,8 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
   showVolumeByDefault = true,
   showEMAsByDefault = true,
   timeframe = '1m',
+  mirajaneTrade,
+  onSquareOffTrade,
   onTimeframeChange,
   onQuickTrade,
   className = '',
@@ -353,8 +358,20 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
         }
       }
     }
+
+    // Mirajane Live Trade Execution Marker
+    if (mirajaneTrade && mirajaneTrade.active && formattedData.length > 0) {
+      markers.push({
+        time: formattedData[formattedData.length - 1].time as UTCTimestamp,
+        position: mirajaneTrade.side === 'BUY' ? 'belowBar' : 'aboveBar',
+        color: '#00f0ff',
+        shape: mirajaneTrade.side === 'BUY' ? 'arrowUp' : 'arrowDown',
+        text: `MIRAJANE ${mirajaneTrade.side} @ ₹${mirajaneTrade.entryPrice.toFixed(1)}`,
+      });
+    }
+
     return markers;
-  }, [formattedData, showSMC]);
+  }, [formattedData, showSMC, mirajaneTrade]);
 
   // Real-time second-by-second live tick pulse (Zero delay vs actual exchange tape)
   useEffect(() => {
@@ -1145,7 +1162,120 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
             {Array.isArray(trendlines) && trendlines.map((tl) => (
               <line key={tl.id} x1={tl.x1} y1={tl.y1} x2={tl.x2} y2={tl.y2} stroke="#38bdf8" strokeWidth="2" strokeDasharray="3 3" />
             ))}
+
+            {/* Active Mirajane Trade SVG Overlay: Entry, Stop-Loss, Target, and Shaded Risk-Reward Zones */}
+            {mirajaneTrade && mirajaneTrade.active && candleSeriesRef.current && (() => {
+              const entryY = candleSeriesRef.current.priceToCoordinate(mirajaneTrade.entryPrice);
+              const slY = candleSeriesRef.current.priceToCoordinate(mirajaneTrade.slPrice);
+              const targetY = candleSeriesRef.current.priceToCoordinate(mirajaneTrade.targetPrice);
+
+              return (
+                <g className="mirajane-trade-graphics">
+                  {/* Target Reward Zone Box (Green Tint) */}
+                  {entryY !== null && targetY !== null && (
+                    <rect
+                      x="0"
+                      y={Math.min(entryY, targetY)}
+                      width="100%"
+                      height={Math.max(4, Math.abs(entryY - targetY))}
+                      fill="rgba(16, 185, 129, 0.08)"
+                      stroke="rgba(16, 185, 129, 0.25)"
+                      strokeDasharray="4 4"
+                    />
+                  )}
+
+                  {/* Stop Loss Risk Zone Box (Red Tint) */}
+                  {entryY !== null && slY !== null && (
+                    <rect
+                      x="0"
+                      y={Math.min(entryY, slY)}
+                      width="100%"
+                      height={Math.max(4, Math.abs(entryY - slY))}
+                      fill="rgba(244, 63, 94, 0.08)"
+                      stroke="rgba(244, 63, 94, 0.25)"
+                      strokeDasharray="4 4"
+                    />
+                  )}
+
+                  {/* Target Price Line (Green) */}
+                  {targetY !== null && targetY >= 0 && (
+                    <g>
+                      <line x1="0" y1={targetY} x2="100%" y2={targetY} stroke="#10b981" strokeWidth="2" strokeDasharray="6 3" />
+                      <rect x="12" y={targetY - 11} width="220" height="22" rx="4" fill="#064e3b" stroke="#10b981" strokeWidth="1.5" />
+                      <text x="20" y={targetY + 4} fill="#6ee7b7" fontSize="11" fontFamily="monospace" fontWeight="bold">
+                        🎯 TARGET: ₹{mirajaneTrade.targetPrice.toFixed(2)} (+{(mirajaneTrade.targetPrice - mirajaneTrade.entryPrice).toFixed(1)} pts)
+                      </text>
+                    </g>
+                  )}
+
+                  {/* Entry Price Line (Cyan) */}
+                  {entryY !== null && entryY >= 0 && (
+                    <g>
+                      <line x1="0" y1={entryY} x2="100%" y2={entryY} stroke="#00f0ff" strokeWidth="2.5" />
+                      <rect x="12" y={entryY - 11} width="250" height="22" rx="4" fill="#083344" stroke="#00f0ff" strokeWidth="1.5" />
+                      <text x="20" y={entryY + 4} fill="#67e8f9" fontSize="11" fontFamily="monospace" fontWeight="bold">
+                        ◈ MIRAJANE {mirajaneTrade.side}: {mirajaneTrade.quantity} Qty @ ₹{mirajaneTrade.entryPrice.toFixed(2)}
+                      </text>
+                    </g>
+                  )}
+
+                  {/* Stop Loss Price Line (Rose) */}
+                  {slY !== null && slY >= 0 && (
+                    <g>
+                      <line x1="0" y1={slY} x2="100%" y2={slY} stroke="#f43f5e" strokeWidth="2" strokeDasharray="6 3" />
+                      <rect x="12" y={slY - 11} width="220" height="22" rx="4" fill="#881337" stroke="#f43f5e" strokeWidth="1.5" />
+                      <text x="20" y={slY + 4} fill="#fda4af" fontSize="11" fontFamily="monospace" fontWeight="bold">
+                        🛑 STOP LOSS: ₹{mirajaneTrade.slPrice.toFixed(2)} (-{(mirajaneTrade.entryPrice - mirajaneTrade.slPrice).toFixed(1)} pts)
+                      </text>
+                    </g>
+                  )}
+                </g>
+              );
+            })()}
           </svg>
+
+          {/* Mirajane Active Trade Floating HUD */}
+          {mirajaneTrade && mirajaneTrade.active && (
+            <div className="absolute top-3 left-4 z-20 flex flex-wrap items-center gap-2.5 px-3 py-2 rounded-xl bg-black/90 border border-cyan-500/50 shadow-[0_8px_32px_rgba(0,240,255,0.25)] backdrop-blur-md">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                <span className="text-[11px] font-mono font-black text-cyan-300">
+                  ◈ MIRAJANE LIVE TRADE
+                </span>
+              </div>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-black ${
+                mirajaneTrade.side === 'BUY'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+              }`}>
+                {mirajaneTrade.side} {mirajaneTrade.quantity} QTY
+              </span>
+              <span className="text-[10px] font-mono text-slate-300">
+                Entry: <strong className="text-white">₹{mirajaneTrade.entryPrice.toFixed(2)}</strong>
+              </span>
+              <span className="text-[10px] font-mono text-slate-300">
+                LTP: <strong className="text-cyan-300">₹{livePrice.toFixed(2)}</strong>
+              </span>
+              {(() => {
+                const diff = (livePrice - mirajaneTrade.entryPrice) * (mirajaneTrade.side === 'BUY' ? 1 : -1);
+                const pnl = diff * mirajaneTrade.quantity;
+                const isProfitable = pnl >= 0;
+                return (
+                  <span className={`text-[11px] font-mono font-black px-2 py-0.5 rounded ${
+                    isProfitable ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'
+                  }`}>
+                    {isProfitable ? '+' : ''}₹{pnl.toFixed(2)} ({((diff / mirajaneTrade.entryPrice) * 100).toFixed(2)}%)
+                  </span>
+                );
+              })()}
+              <button
+                onClick={() => onSquareOffTrade?.(mirajaneTrade.id)}
+                className="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/40 text-rose-300 text-[10px] font-mono font-bold cursor-pointer transition-all active:scale-95"
+              >
+                SQUARE OFF
+              </button>
+            </div>
+          )}
 
           {/* Active Drawing Tool Helper Toast */}
           {activeDrawingTool !== 'cursor' && (

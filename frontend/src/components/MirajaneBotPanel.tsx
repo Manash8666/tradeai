@@ -27,6 +27,8 @@ import {
   History
 } from 'lucide-react';
 import axios from 'axios';
+import { usePortfolioStore } from '../store/portfolioStore';
+import { TradingViewChart } from './TradingViewChart';
 
 interface MirajaneStatus {
   bot_name: string;
@@ -75,7 +77,8 @@ interface ChatMessage {
   cancelled?: boolean;
 }
 
-export function MirajaneBotPanel() {
+export function MirajaneBotPanel({ onSelectView }: { onSelectView?: (view: any) => void } = {}) {
+  const { addMirajaneTrade, closeMirajaneTrade } = usePortfolioStore();
   const [activeTab, setActiveTab] = useState<'intercom' | 'sentience' | 'evolution' | 'previral'>('intercom');
 
   const [status, setStatus] = useState<MirajaneStatus>({
@@ -667,6 +670,23 @@ export function MirajaneBotPanel() {
         },
       ]);
     } finally {
+      const mult = trade.side === 'BUY' ? 1 : -1;
+      addMirajaneTrade({
+        id: `mira-${trade.order_id || Date.now()}`,
+        symbol: trade.symbol,
+        side: trade.side,
+        quantity: trade.quantity,
+        entryPrice: trade.price,
+        currentPrice: trade.price,
+        slPrice: Number((trade.price - 60 * mult).toFixed(2)),
+        targetPrice: Number((trade.price + 144 * mult).toFixed(2)),
+        strategyName: 'SMC FVG Institutional Absorption Spread',
+        convictionScore: 91.4,
+        pnlInr: 0,
+        pnlPct: 0,
+        timestamp: Date.now(),
+        active: true,
+      });
       setActionLoadingId(null);
     }
   };
@@ -681,6 +701,7 @@ export function MirajaneBotPanel() {
 
   const handleClosePosition = async (symbol: string) => {
     setActionLoadingId(`close-${symbol}`);
+    closeMirajaneTrade(symbol);
     try {
       await axios.post('/api/mirajane/trade/close', { symbol });
       await fetchPositions();
@@ -696,6 +717,8 @@ export function MirajaneBotPanel() {
       return;
     }
     setActionLoadingId('flatten-all');
+    closeMirajaneTrade('NIFTY');
+    closeMirajaneTrade('BANKNIFTY');
     try {
       const res = await axios.post('/api/mirajane/trade/flatten');
       await fetchPositions();
@@ -1472,6 +1495,90 @@ export function MirajaneBotPanel() {
                             style={{ fontSize: '0.72rem', color: 'var(--color-error)' }}
                           >
                             REJECT
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Live Trade Chart & Direct Execution Overlay */}
+                    {msg.trade_action && msg.executed && (
+                      <div
+                        style={{
+                          marginTop: 'var(--space-3)',
+                          padding: 'var(--space-3)',
+                          borderRadius: 'var(--radius-md)',
+                          background: 'rgba(0, 240, 255, 0.04)',
+                          border: '1px solid rgba(0, 240, 255, 0.35)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 'var(--space-2)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#00f0ff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                            ◈ MIRAJANE ACTIVE TRADE LIVE ON CHART
+                          </span>
+                          <span style={{ fontSize: '0.65rem', color: '#10b981', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                            ORDER FILLED • HFT OMS
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold mr-1.5 text-[10px]">
+                            {msg.trade_action.side}
+                          </span>
+                          <strong>{msg.trade_action.quantity} Qty</strong> • <strong>{msg.trade_action.symbol}</strong> @ ₹{msg.trade_action.price.toLocaleString('en-IN')}
+                        </div>
+
+                        {/* Interactive Embedded Live TradingView Chart with Mirajane's Entry, SL & Target Overlay */}
+                        <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', height: '260px', marginTop: '6px' }}>
+                          <TradingViewChart
+                            symbol={msg.trade_action.symbol}
+                            spot={msg.trade_action.price}
+                            height={260}
+                            showIndicatorsToolbar={false}
+                            mirajaneTrade={{
+                              id: msg.trade_action.order_id || msg.id,
+                              symbol: msg.trade_action.symbol,
+                              side: msg.trade_action.side,
+                              quantity: msg.trade_action.quantity,
+                              entryPrice: msg.trade_action.price,
+                              currentPrice: msg.trade_action.price,
+                              slPrice: msg.trade_action.price - 60 * (msg.trade_action.side === 'BUY' ? 1 : -1),
+                              targetPrice: msg.trade_action.price + 144 * (msg.trade_action.side === 'BUY' ? 1 : -1),
+                              strategyName: 'SMC FVG Institutional Absorption Spread',
+                              convictionScore: 91.4,
+                              pnlInr: 0,
+                              pnlPct: 0,
+                              timestamp: Date.now(),
+                              active: true,
+                            }}
+                            onSquareOffTrade={() => handleClosePosition(msg.trade_action!.symbol)}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
+                          <button
+                            onClick={() => onSelectView?.('live_trading')}
+                            className="btn btn-sm"
+                            style={{
+                              flex: 1,
+                              background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+                              color: '#000',
+                              fontWeight: 900,
+                              fontSize: '0.72rem',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            📊 OPEN FULLSCREEN LIVE TRADING DESK
+                          </button>
+                          <button
+                            onClick={() => handleClosePosition(msg.trade_action!.symbol)}
+                            className="btn btn-sm btn-ghost"
+                            style={{ fontSize: '0.72rem', color: 'var(--color-error)', cursor: 'pointer' }}
+                          >
+                            SQUARE OFF
                           </button>
                         </div>
                       </div>
