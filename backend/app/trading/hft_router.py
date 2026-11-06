@@ -371,6 +371,12 @@ from backend.app.trading.morning_scheduler import (
     morning_market_scheduler,
     MarketScheduleStatus,
 )
+from backend.app.trading.nse_india_client import (
+    nse_india_client,
+    NseMarketStatus,
+    NseIndexItem,
+    NseFiiDiiItem,
+)
 
 
 @router.get("/market_schedule", response_model=MarketScheduleStatus)
@@ -379,5 +385,40 @@ def get_market_schedule_status():
     Indian Market Session Status & 09:00 IST Morning Routine Lifecycle.
     """
     return morning_market_scheduler.get_session_state()
+
+
+# --- Official NSE India Direct Feeds ---
+
+@router.get("/nse/market_status", response_model=List[NseMarketStatus])
+async def get_nse_market_status():
+    """
+    Official live market status across Capital Market, Currency, Derivatives, Debt from nseindia.com.
+    """
+    return await nse_india_client.get_market_status()
+
+
+@router.get("/nse/indices", response_model=List[NseIndexItem])
+async def get_nse_indices():
+    """
+    All 139 official NSE benchmark and sectoral indices from nseindia.com.
+    """
+    return await nse_india_client.get_all_indices()
+
+
+@router.get("/nse/fii_dii", response_model=List[NseFiiDiiItem])
+async def get_nse_fii_dii():
+    """
+    Daily Institutional FII and DII cash flow activity in ₹ Crores directly from nseindia.com.
+    """
+    return await nse_india_client.get_fii_dii_activity()
+
+
+@router.get("/nse/pre_open")
+async def get_nse_pre_open(key: str = Query(default="NIFTY")):
+    """
+    Pre-open 09:00 AM auction discovery and order imbalance from nseindia.com.
+    """
+    return await nse_india_client.get_pre_open_market(key=key)
+
 
 
