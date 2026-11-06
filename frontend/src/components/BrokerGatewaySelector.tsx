@@ -4,13 +4,16 @@ import { Server, ChevronDown, Check, Zap, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
 export interface BrokerStatus {
-  id: string;
+  broker_id: string;
   name: string;
-  is_active: boolean;
-  is_connected: boolean;
+  connected: boolean;
   latency_ms: number;
-  supported_products: string[];
+  features: string[];
   rate_limit_per_sec: number;
+  static_ip_compliant: boolean;
+  is_active?: boolean;
+  client_id?: string;
+  account_name?: string;
 }
 
 export function BrokerGatewaySelector() {
@@ -26,43 +29,28 @@ export function BrokerGatewaySelector() {
       const active = res.data.find((b) => b.is_active);
       if (active) setSelectedBroker(active);
     } catch {
-      // Fallback local mock if backend is momentarily restarting
       const fallbackBrokers: BrokerStatus[] = [
         {
-          id: 'FYERS',
-          name: 'Fyers Direct API v3',
+          broker_id: 'FYERS',
+          name: 'FYERS Trading API v3',
+          connected: true,
           is_active: true,
-          is_connected: true,
           latency_ms: 18.5,
-          supported_products: ['CNC', 'MIS', 'NRML', 'CO', 'BO'],
-          rate_limit_per_sec: 50,
+          features: ['REST API v3', 'L2 WebSockets'],
+          rate_limit_per_sec: 10,
+          static_ip_compliant: true,
+          client_id: 'FAL33350',
+          account_name: 'MANASH RANJAN DASH',
         },
         {
-          id: 'PAPER',
-          name: 'Institutional Paper Engine',
+          broker_id: 'PAPER',
+          name: 'Antigravity Institutional Simulator',
+          connected: true,
           is_active: false,
-          is_connected: true,
           latency_ms: 0.15,
-          supported_products: ['CNC', 'MIS', 'NRML'],
-          rate_limit_per_sec: 200,
-        },
-        {
-          id: 'ZERODHA',
-          name: 'Zerodha Kite Connect',
-          is_active: false,
-          is_connected: true,
-          latency_ms: 22.1,
-          supported_products: ['CNC', 'MIS', 'NRML'],
-          rate_limit_per_sec: 20,
-        },
-        {
-          id: 'DHAN',
-          name: 'Dhan HQ Direct',
-          is_active: false,
-          is_connected: true,
-          latency_ms: 14.8,
-          supported_products: ['CNC', 'MIS', 'NRML'],
-          rate_limit_per_sec: 25,
+          features: ['Zero Risk', 'Full SEBI Ledger'],
+          rate_limit_per_sec: 1000,
+          static_ip_compliant: true,
         },
       ];
       setBrokers(fallbackBrokers);
@@ -102,6 +90,11 @@ export function BrokerGatewaySelector() {
         <span className="font-bold text-white tracking-wide">
           {active ? active.name.split(' ')[0] : 'ROUTING'}
         </span>
+        {active && active.client_id && (
+          <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/25 hidden xl:inline">
+            {active.client_id}
+          </span>
+        )}
         {active && (
           <span
             className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
@@ -127,7 +120,7 @@ export function BrokerGatewaySelector() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-72 rounded-xl bg-[#090d16] border border-white/[0.12] shadow-2xl p-2 z-50 backdrop-blur-2xl"
+            className="absolute right-0 mt-2 w-80 rounded-xl bg-[#090d16] border border-white/[0.12] shadow-2xl p-2 z-50 backdrop-blur-2xl"
           >
             <div className="px-2 py-1.5 border-b border-white/[0.06] flex items-center justify-between">
               <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
@@ -141,12 +134,12 @@ export function BrokerGatewaySelector() {
 
             <div className="py-1 space-y-1">
               {brokers.map((broker) => {
-                const isSelected = broker.id === active?.id;
+                const isSelected = broker.broker_id === active?.broker_id;
                 return (
                   <button
-                    key={broker.id}
+                    key={broker.broker_id}
                     disabled={loading}
-                    onClick={() => switchBroker(broker.id)}
+                    onClick={() => switchBroker(broker.broker_id)}
                     className={`w-full text-left px-2.5 py-2 rounded-lg flex items-center justify-between transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-emerald-500/15 border border-emerald-500/30'
@@ -158,19 +151,23 @@ export function BrokerGatewaySelector() {
                         <span className="text-xs font-bold text-white tracking-wide">
                           {broker.name}
                         </span>
-                        {broker.id === 'FYERS' && (
-                          <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            v3 REST/WS
+                        {broker.broker_id === 'FYERS' && broker.connected && (
+                          <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            AUTHENTICATED
                           </span>
                         )}
-                        {broker.id === 'PAPER' && (
-                          <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        {broker.broker_id === 'PAPER' && (
+                          <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                             ZERO RISK
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono text-slate-400">
-                        <span>Latency: {broker.latency_ms.toFixed(1)}ms</span>
+                        {broker.client_id ? (
+                          <span className="text-amber-300 font-bold">{broker.client_id} ({broker.account_name?.split(' ')[0]})</span>
+                        ) : (
+                          <span>Latency: {broker.latency_ms.toFixed(1)}ms</span>
+                        )}
                         <span>·</span>
                         <span>Cap: {broker.rate_limit_per_sec}/s</span>
                       </div>
@@ -181,6 +178,8 @@ export function BrokerGatewaySelector() {
                         <div className="w-5 h-5 rounded-full bg-emerald-400 flex items-center justify-center text-[#090d16]">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </div>
+                      ) : broker.connected ? (
+                        <span className="w-2 h-2 rounded-full bg-emerald-400/60" />
                       ) : (
                         <span className="w-2 h-2 rounded-full bg-slate-600" />
                       )}

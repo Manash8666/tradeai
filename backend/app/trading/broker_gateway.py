@@ -14,8 +14,10 @@ Provides a unified facade across major Indian brokerage APIs:
 from enum import Enum
 from typing import Dict, Any, List, Optional
 import os
+import json
 import time
 import logging
+from pathlib import Path
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("BrokerGateway")
@@ -36,6 +38,9 @@ class BrokerStatus(BaseModel):
     features: List[str]
     rate_limit_per_sec: int
     static_ip_compliant: bool
+    is_active: bool = False
+    client_id: Optional[str] = None
+    account_name: Optional[str] = None
 
 class UnifiedOrder(BaseModel):
     symbol: str
@@ -77,29 +82,51 @@ class BrokerGateway:
 
     def list_brokers(self) -> List[BrokerStatus]:
         """Returns connection health and capabilities of all supported brokers."""
+        fyers_tok_path = Path(os.path.expanduser("~/.fyers/token.json"))
+        fyers_active = False
+        client_id = None
+        account_name = None
+        if fyers_tok_path.exists():
+            try:
+                tok_data = json.loads(fyers_tok_path.read_text())
+                if tok_data.get("access_token"):
+                    fyers_active = True
+                    client_id = "FAL33350"
+                    account_name = "MANASH RANJAN DASH"
+            except Exception:
+                pass
+
+        if fyers_active and self._active_broker == BrokerId.PAPER:
+            self._active_broker = BrokerId.FYERS
+
         return [
+            BrokerStatus(
+                broker_id=BrokerId.FYERS,
+                name="FYERS Trading API v3",
+                connected=fyers_active,
+                is_active=(self._active_broker == BrokerId.FYERS),
+                latency_ms=18.5,
+                features=["REST API v3", "L2 WebSockets", "GTT Orders", "Multi-Leg Margin"],
+                rate_limit_per_sec=10,
+                static_ip_compliant=True,
+                client_id=client_id,
+                account_name=account_name,
+            ),
             BrokerStatus(
                 broker_id=BrokerId.PAPER,
                 name="Antigravity Institutional Simulator",
                 connected=True,
+                is_active=(self._active_broker == BrokerId.PAPER),
                 latency_ms=0.15,
                 features=["Zero Risk", "15x 0DTE Singularity", "Full SEBI Ledger", "SABR Surface"],
                 rate_limit_per_sec=1000,
                 static_ip_compliant=True,
             ),
             BrokerStatus(
-                broker_id=BrokerId.FYERS,
-                name="FYERS Trading API v3",
-                connected=self._credentials[BrokerId.FYERS]["configured"],
-                latency_ms=18.5,
-                features=["REST API v3", "L2 WebSockets", "GTT Orders", "Multi-Leg Margin"],
-                rate_limit_per_sec=10,
-                static_ip_compliant=True,
-            ),
-            BrokerStatus(
                 broker_id=BrokerId.ZERODHA,
                 name="Zerodha Kite Connect",
                 connected=self._credentials[BrokerId.ZERODHA]["configured"],
+                is_active=(self._active_broker == BrokerId.ZERODHA),
                 latency_ms=24.0,
                 features=["Kite Ticker", "Basket Orders", "Historical API", "GTT Triggers"],
                 rate_limit_per_sec=3,
@@ -109,6 +136,7 @@ class BrokerGateway:
                 broker_id=BrokerId.ANGEL_ONE,
                 name="Angel One SmartAPI",
                 connected=self._credentials[BrokerId.ANGEL_ONE]["configured"],
+                is_active=(self._active_broker == BrokerId.ANGEL_ONE),
                 latency_ms=22.0,
                 features=["Zero-Balance Sandbox", "Direct WebSocket Ticks", "Rule Engine"],
                 rate_limit_per_sec=10,
@@ -118,6 +146,7 @@ class BrokerGateway:
                 broker_id=BrokerId.DHAN,
                 name="DhanHQ API v2",
                 connected=self._credentials[BrokerId.DHAN]["configured"],
+                is_active=(self._active_broker == BrokerId.DHAN),
                 latency_ms=19.2,
                 features=["Fast Order Routing", "Forever Orders", "Trader API", "Options Greeks"],
                 rate_limit_per_sec=10,
@@ -127,6 +156,7 @@ class BrokerGateway:
                 broker_id=BrokerId.UPSTOX,
                 name="Upstox Pro API v2/v3",
                 connected=self._credentials[BrokerId.UPSTOX]["configured"],
+                is_active=(self._active_broker == BrokerId.UPSTOX),
                 latency_ms=21.4,
                 features=["Protobuf Market Data Feed", "Portfolio Sync", "HFT WebSockets"],
                 rate_limit_per_sec=10,
