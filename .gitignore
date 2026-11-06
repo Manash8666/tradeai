@@ -62,3 +62,6 @@ scratch/
 
 # ClickHouse
 clickhouse-data/
+
+.vercel
+.env*.local

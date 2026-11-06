@@ -13,6 +13,11 @@ Endpoints:
 """
 
 import os
+import json
+import hashlib
+from pathlib import Path
+from datetime import datetime, timezone
+import requests
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import FileResponse, PlainTextResponse
@@ -419,6 +424,59 @@ async def get_nse_pre_open(key: str = Query(default="NIFTY")):
     Pre-open 09:00 AM auction discovery and order imbalance from nseindia.com.
     """
     return await nse_india_client.get_pre_open_market(key=key)
+
+
+class FyersAuthPayload(BaseModel):
+    auth_code: str
+    app_id: Optional[str] = None
+    secret_id: Optional[str] = None
+
+
+@router.post("/fyers/validate_auth_code")
+async def exchange_fyers_auth_code(payload: FyersAuthPayload):
+    """
+    Exchanges a Fyers authorization code for an active v3 access token and updates ~/.fyers/token.json.
+    """
+    app_id = payload.app_id or os.getenv("FYERS_APP_ID", "D6SJ7JO8EO-200")
+    secret_id = payload.secret_id or os.getenv("FYERS_SECRET_ID", "2oqJKmPs11")
+
+    app_id_hash = hashlib.sha256(f"{app_id}:{secret_id}".encode()).hexdigest()
+
+    req_body = {
+        "grant_type": "authorization_code",
+        "appIdHash": app_id_hash,
+        "code": payload.auth_code,
+    }
+
+    try:
+        res = requests.post(
+            "https://api-t1.fyers.in/api/v3/validate-authcode",
+            json=req_body,
+            headers={"Content-Type": "application/json"},
+            timeout=15,
+        )
+        data = res.json()
+        if data.get("s") == "ok" and data.get("access_token"):
+            token_dir = Path(os.path.expanduser("~/.fyers"))
+            token_dir.mkdir(parents=True, exist_ok=True)
+            tok_path = token_dir / "token.json"
+
+            save_payload = {
+                "app_id": app_id,
+                "secret_id": secret_id,
+                "client_id": "FAL33350",
+                "account_name": "MANASH RANJAN DASH",
+                "access_token": data["access_token"],
+                "refresh_token": data.get("refresh_token", ""),
+                "status": "connected",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            tok_path.write_text(json.dumps(save_payload, indent=2))
+            return {"status": "SUCCESS", "message": "Fyers v3 access token updated and stored successfully.", "data": data}
+        return {"status": "ERROR", "message": data.get("message", "Validation failed"), "details": data}
+    except Exception as e:
+        return {"status": "ERROR", "message": str(e)}
+
 
 
 
