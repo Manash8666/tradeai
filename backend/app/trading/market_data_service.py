@@ -23,12 +23,12 @@ CURRENT_DAY = 5    # Thursday (NSE Weekly Expiry)
 
 # Base Assets Registry
 ASSETS_CATALOG = {
-    # ── INDICES & FUTURES ──
+    # ── INDICES & FUTURES (Live Calibrated to NSE / Fyers v3) ──
     "NIFTY": {
         "name": "NIFTY 50",
         "category": "INDEX_FUTURES",
-        "base_spot": 23806.95,
-        "lot_size": 50,
+        "base_spot": 24813.50,
+        "lot_size": 75,
         "strike_step": 50,
         "exchange": "NSE",
         "tick_size": 0.05,
@@ -36,7 +36,7 @@ ASSETS_CATALOG = {
     "BANKNIFTY": {
         "name": "BANK NIFTY",
         "category": "INDEX_FUTURES",
-        "base_spot": 51240.20,
+        "base_spot": 58640.45,
         "lot_size": 15,
         "strike_step": 100,
         "exchange": "NSE",
@@ -45,7 +45,7 @@ ASSETS_CATALOG = {
     "FINNIFTY": {
         "name": "NIFTY FINANCIAL SERVICES",
         "category": "INDEX_FUTURES",
-        "base_spot": 24150.80,
+        "base_spot": 26975.35,
         "lot_size": 25,
         "strike_step": 50,
         "exchange": "NSE",
@@ -54,7 +54,7 @@ ASSETS_CATALOG = {
     "SENSEX": {
         "name": "BSE SENSEX",
         "category": "INDEX_FUTURES",
-        "base_spot": 78540.30,
+        "base_spot": 80480.20,
         "lot_size": 10,
         "strike_step": 100,
         "exchange": "BSE",
@@ -64,7 +64,7 @@ ASSETS_CATALOG = {
     "RELIANCE": {
         "name": "Reliance Industries Ltd",
         "category": "EQUITY",
-        "base_spot": 2984.50,
+        "base_spot": 1312.70,
         "lot_size": 250,
         "strike_step": 20,
         "exchange": "NSE",
@@ -73,7 +73,7 @@ ASSETS_CATALOG = {
     "TCS": {
         "name": "Tata Consultancy Services Ltd",
         "category": "EQUITY",
-        "base_spot": 4125.75,
+        "base_spot": 2491.10,
         "lot_size": 175,
         "strike_step": 20,
         "exchange": "NSE",
@@ -82,7 +82,7 @@ ASSETS_CATALOG = {
     "HDFCBANK": {
         "name": "HDFC Bank Ltd",
         "category": "EQUITY",
-        "base_spot": 1745.20,
+        "base_spot": 778.50,
         "lot_size": 550,
         "strike_step": 10,
         "exchange": "NSE",

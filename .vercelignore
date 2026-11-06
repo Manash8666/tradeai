@@ -1,0 +1,14 @@
+.venv
+__pycache__
+*.pyc
+node_modules
+frontend/node_modules
+.git
+.agents
+.claude
+data
+scripts
+artifacts
+brain
+trading_platform.db
+backend
