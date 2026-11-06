@@ -211,3 +211,53 @@ async def test_hft_rest_endpoints():
         r6 = await client.get("/api/hft/sebi_report/download")
         assert r6.status_code == 200
         assert "text/csv" in r6.headers["content-type"]
+
+        # Algo Slicing (VWAP / TWAP)
+        r7 = await client.post(
+            "/api/hft/algo_slice",
+            json={
+                "symbol": "NIFTY",
+                "side": "BUY",
+                "algo": "VWAP",
+                "total_quantity": 300,
+                "base_price": 24500.0,
+                "duration_minutes": 30,
+            },
+        )
+        assert r7.status_code == 200
+        plan = r7.json()
+        assert plan["algo"] == "VWAP"
+        assert plan["total_quantity"] == 300
+        assert sum(s["quantity"] for s in plan["slices"]) == 300
+        assert len(plan["slices"]) >= 2
+
+        # Edge Scanner (KIRA)
+        r8 = await client.get("/api/hft/edge_scan?symbol=NIFTY")
+        assert r8.status_code == 200
+        scan = r8.json()
+        assert scan["symbol"] == "NIFTY"
+        assert "market_regime" in scan
+        assert "support_resistance" in scan
+        assert len(scan["patterns"]) >= 3
+
+        # Multi-Broker Gateway
+        r9 = await client.get("/api/hft/brokers")
+        assert r9.status_code == 200
+        brokers = r9.json()
+        broker_ids = [b["broker_id"] for b in brokers]
+        assert "FYERS" in broker_ids
+        assert "PAPER" in broker_ids
+        assert "ZERODHA" in broker_ids
+
+        # Broker Select
+        r10 = await client.post("/api/hft/brokers/select?broker_id=FYERS")
+        assert r10.status_code == 200
+        assert r10.json()["active_broker"] == "FYERS"
+
+        # Zero-Auth Live Quote
+        r11 = await client.get("/api/hft/live_quote?symbol=NIFTY")
+        assert r11.status_code == 200
+        q = r11.json()
+        assert q["symbol"] == "NIFTY"
+        assert q["ltp"] > 0
+

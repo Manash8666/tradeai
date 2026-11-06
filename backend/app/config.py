@@ -50,6 +50,12 @@ class Settings(BaseSettings):
 
     # --- Broker (Static IP — SEBI Compliant) ---
     broker_static_ip: str = ""
+    fyers_app_id: str = ""
+    fyers_secret_id: str = ""
+    fyers_redirect_uri: str = "https://trade.fyers.in/api-login/redirect-uri/index.html"
+    fyers_pin: str = ""
+    angel_one_api_key: str = ""
+    angel_one_client_id: str = ""
 
     # --- AI / LLM (OpenRouter) ---
     openrouter_api_key: str = ""
@@ -64,6 +70,7 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": False,
+        "extra": "ignore",
     }
 
     @property

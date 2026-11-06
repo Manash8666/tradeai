@@ -1,0 +1,9 @@
+{
+  "runs": 10000,
+  "target_hit_pct": 40.5,
+  "stop_hit_pct": 39.2,
+  "flat_by_close_pct": 20.2,
+  "reward_risk_ratio": 1.5,
+  "expected_value_per_rupee": 0.22,
+  "verdict": "FAVORABLE"
+}

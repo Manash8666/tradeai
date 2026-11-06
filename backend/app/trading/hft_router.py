@@ -279,3 +279,90 @@ def run_taylor_decomposition(req: TaylorDecompRequest):
         is_call=req.is_call,
     )
     return result
+
+
+# --- Benchmark Extensions (KIRA, Indian Infrastructure Platform, StockWise, 0xramm) ---
+
+from backend.app.trading.algo_slicing import (
+    algo_slicing_engine,
+    AlgoType,
+    OrderSide as SlicingOrderSide,
+    ExecutionPlan,
+)
+from backend.app.trading.edge_detector import (
+    edge_detector_engine,
+    EdgeScanReport,
+)
+from backend.app.trading.broker_gateway import (
+    broker_gateway,
+    BrokerId,
+    BrokerStatus,
+)
+from backend.app.trading.live_market_scraper import (
+    live_market_scraper,
+)
+
+
+class AlgoSliceRequest(BaseModel):
+    symbol: str = "NIFTY"
+    side: str = Field(default="BUY", pattern="^(BUY|SELL)$")
+    algo: str = Field(default="VWAP", pattern="^(IMMEDIATE|TWAP|VWAP|POV)$")
+    total_quantity: int = Field(default=150, gt=0)
+    base_price: float = Field(default=24500.0, gt=0)
+    duration_minutes: int = Field(default=30, gt=0)
+    slice_count: Optional[int] = None
+    participation_rate: float = Field(default=0.15, gt=0.0, le=1.0)
+
+
+@router.post("/algo_slice", response_model=ExecutionPlan)
+def plan_algo_slice(req: AlgoSliceRequest):
+    """
+    Algorithmic execution slicing engine (TWAP, VWAP, POV).
+    Deconstructs institutional orders into child slices following U-shaped volume curve.
+    """
+    side_enum = SlicingOrderSide.BUY if req.side.upper() == "BUY" else SlicingOrderSide.SELL
+    algo_enum = AlgoType(req.algo.upper())
+    return algo_slicing_engine.plan_execution(
+        symbol=req.symbol,
+        side=side_enum,
+        algo=algo_enum,
+        total_quantity=req.total_quantity,
+        base_price=req.base_price,
+        duration_minutes=req.duration_minutes,
+        slice_count=req.slice_count,
+        participation_rate=req.participation_rate,
+    )
+
+
+@router.get("/edge_scan", response_model=EdgeScanReport)
+def scan_market_edge(symbol: str = Query(default="NIFTY")):
+    """
+    KIRA-grade Microstructure Edge Scanner & Pattern Expectancy Engine.
+    Computes Order Book Imbalance (OBI), Dynamic S&R Pivot Levels, and Pattern Forward Returns.
+    """
+    return edge_detector_engine.analyze_symbol(symbol=symbol)
+
+
+@router.get("/brokers", response_model=List[BrokerStatus])
+def list_supported_brokers():
+    """
+    Unified multi-broker gateway status (FYERS, Zerodha, Dhan, Angel One, Upstox, Paper).
+    """
+    return broker_gateway.list_brokers()
+
+
+@router.post("/brokers/select")
+def select_active_broker(broker_id: str = Query(..., pattern="^(FYERS|ZERODHA|ANGEL_ONE|DHAN|UPSTOX|PAPER)$")):
+    """
+    Switches active routing broker destination.
+    """
+    return broker_gateway.set_active_broker(BrokerId(broker_id))
+
+
+@router.get("/live_quote")
+async def get_live_market_quote(symbol: str = Query(default="NIFTY")):
+    """
+    Zero-Auth real-time market quote using automated crumb-cookie public feed scraper.
+    """
+    return await live_market_scraper.get_live_quote(symbol=symbol)
+

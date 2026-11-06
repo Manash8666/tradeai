@@ -1,0 +1,11 @@
+{
+  "symbol": "RELIANCE.NS",
+  "direction": "LONG",
+  "entry_price": 1234.5,
+  "stop_loss": 1223.1,
+  "risk_per_share": 11.4,
+  "target_1_5r": 1251.6,
+  "target_2r": 1257.3,
+  "hard_time_cutoff": "15:15 IST",
+  "auto_squareoff_notice": "Position MUST be closed before 15:15 IST to avoid broker MIS auto-squareoff penalty charges (\u20b950+GST)."
+}

@@ -1,0 +1,156 @@
+[
+  {
+    "symbol": "ADANIPOWER.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 193.8,
+    "orb_low": 190.18,
+    "orb_range": 3.62,
+    "orb_midpoint": 191.99,
+    "trigger_close": 194.0,
+    "trigger_bar_index": 6,
+    "extension_pct": 0.1
+  },
+  {
+    "symbol": "AMBUJACEM.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 356.4,
+    "orb_low": 351.8,
+    "orb_range": 4.6,
+    "orb_midpoint": 354.1,
+    "trigger_close": 357.35,
+    "trigger_bar_index": 5,
+    "extension_pct": 0.27
+  },
+  {
+    "symbol": "APOLLOHOSP.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 8385.0,
+    "orb_low": 8305.0,
+    "orb_range": 80.0,
+    "orb_midpoint": 8345.0,
+    "trigger_close": 8398.5,
+    "trigger_bar_index": 10,
+    "extension_pct": 0.16
+  },
+  {
+    "symbol": "ASIANPAINT.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 2363.9,
+    "orb_low": 2334.2,
+    "orb_range": 29.7,
+    "orb_midpoint": 2349.05,
+    "trigger_close": 2365.5,
+    "trigger_bar_index": 11,
+    "extension_pct": 0.07
+  },
+  {
+    "symbol": "BAJFINANCE.NS",
+    "type": "ORB_BEARISH",
+    "orb_high": 949.7,
+    "orb_low": 941.6,
+    "orb_range": 8.1,
+    "orb_midpoint": 945.65,
+    "trigger_close": 940.9,
+    "trigger_bar_index": 8,
+    "extension_pct": 0.07
+  },
+  {
+    "symbol": "BANKBARODA.NS",
+    "type": "ORB_BEARISH",
+    "orb_high": 250.53,
+    "orb_low": 245.11,
+    "orb_range": 5.42,
+    "orb_midpoint": 247.82,
+    "trigger_close": 244.5,
+    "trigger_bar_index": 11,
+    "extension_pct": 0.25
+  },
+  {
+    "symbol": "BEL.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 376.8,
+    "orb_low": 370.2,
+    "orb_range": 6.6,
+    "orb_midpoint": 373.5,
+    "trigger_close": 377.3,
+    "trigger_bar_index": 6,
+    "extension_pct": 0.13
+  },
+  {
+    "symbol": "BPCL.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 292.1,
+    "orb_low": 287.7,
+    "orb_range": 4.4,
+    "orb_midpoint": 289.9,
+    "trigger_close": 292.35,
+    "trigger_bar_index": 8,
+    "extension_pct": 0.09
+  },
+  {
+    "symbol": "BOSCHLTD.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 47685.0,
+    "orb_low": 47350.0,
+    "orb_range": 335.0,
+    "orb_midpoint": 47517.5,
+    "trigger_close": 47865.0,
+    "trigger_bar_index": 9,
+    "extension_pct": 0.38
+  },
+  {
+    "symbol": "CHOLAFIN.NS",
+    "type": "ORB_BEARISH",
+    "orb_high": 1622.0,
+    "orb_low": 1599.2,
+    "orb_range": 22.8,
+    "orb_midpoint": 1610.6,
+    "trigger_close": 1597.4,
+    "trigger_bar_index": 4,
+    "extension_pct": 0.11
+  },
+  {
+    "symbol": "CIPLA.NS",
+    "type": "ORB_BEARISH",
+    "orb_high": 1388.9,
+    "orb_low": 1369.1,
+    "orb_range": 19.8,
+    "orb_midpoint": 1379.0,
+    "trigger_close": 1368.6,
+    "trigger_bar_index": 44,
+    "extension_pct": 0.04
+  },
+  {
+    "symbol": "COALINDIA.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 398.6,
+    "orb_low": 395.35,
+    "orb_range": 3.25,
+    "orb_midpoint": 396.98,
+    "trigger_close": 399.0,
+    "trigger_bar_index": 4,
+    "extension_pct": 0.1
+  },
+  {
+    "symbol": "DLF.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 694.5,
+    "orb_low": 688.85,
+    "orb_range": 5.65,
+    "orb_midpoint": 691.67,
+    "trigger_close": 694.55,
+    "trigger_bar_index": 4,
+    "extension_pct": 0.01
+  },
+  {
+    "symbol": "GAIL.NS",
+    "type": "ORB_BULLISH",
+    "orb_high": 173.37,
+    "orb_low": 168.95,
+    "orb_range": 4.42,
+    "orb_midpoint": 171.16,
+    "trigger_close": 173.85,
+    "trigger_bar_index": 8,
+    "extension_pct": 0.28
+  }
+]

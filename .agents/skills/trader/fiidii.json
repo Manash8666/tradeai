@@ -1,0 +1,172 @@
+{
+  "timestamp": 1793610498.1925752,
+  "fii_dii": [
+    {
+      "buyValue": "16643.55",
+      "category": "DII",
+      "date": "30-Oct-2026",
+      "netValue": "-817.51",
+      "sellValue": "17461.06"
+    },
+    {
+      "buyValue": "20564.02",
+      "category": "FII/FPI",
+      "date": "30-Oct-2026",
+      "netValue": "3598.54",
+      "sellValue": "16965.48"
+    }
+  ],
+  "bulk_deals": [
+    {
+      "buySell": "BUY",
+      "clientName": "QE SECURITIES LLP",
+      "date": "30-Oct-2026",
+      "name": "Aeroflex Industries Ltd",
+      "qty": "670611",
+      "remarks": "-",
+      "symbol": "AEROFLEX",
+      "watp": "540.12"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "PROGNOSIS SECURITIES PVT. LTD",
+      "date": "30-Oct-2026",
+      "name": "Annapurna Swadisht Ltd",
+      "qty": "167387",
+      "remarks": "-",
+      "symbol": "ANNAPURNA",
+      "watp": "123.24"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "ATLAS EVENTS PRIVATE LIMITED",
+      "date": "30-Oct-2026",
+      "name": "Annapurna Swadisht Ltd",
+      "qty": "167104",
+      "remarks": "-",
+      "symbol": "ANNAPURNA",
+      "watp": "110.2"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "ARIHANT CAPITAL MARKETS LIMITED",
+      "date": "30-Oct-2026",
+      "name": "Commercial Syn Bags Ltd",
+      "qty": "231475",
+      "remarks": "-",
+      "symbol": "COMSYN",
+      "watp": "203.77"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "SSPL SECURITIES PRIVATE LIMITED",
+      "date": "30-Oct-2026",
+      "name": "Equitas Small Fin Bnk Ltd",
+      "qty": "9900000",
+      "remarks": "-",
+      "symbol": "EQUITASBNK",
+      "watp": "50.59"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "ALPHAGREP SECURITIES PRIVATE LIMITED",
+      "date": "30-Oct-2026",
+      "name": "Equitas Small Fin Bnk Ltd",
+      "qty": "6476843",
+      "remarks": "-",
+      "symbol": "EQUITASBNK",
+      "watp": "50.28"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "ARIHANT CAPITAL MARKETS LIMITED",
+      "date": "30-Oct-2026",
+      "name": "Ackruti City Limited",
+      "qty": "1772283",
+      "remarks": "-",
+      "symbol": "HUBTOWN",
+      "watp": "186.44"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "VENKATESHWARA INDUSTRIAL PROMOTION CO LIMITED",
+      "date": "30-Oct-2026",
+      "name": "Integrity Infrabuild De L",
+      "qty": "56400",
+      "remarks": "-",
+      "symbol": "INTEGRITY",
+      "watp": "200.5"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "KREDENT TRADING LLP",
+      "date": "30-Oct-2026",
+      "name": "Jain DVR Equity Shares",
+      "qty": "218",
+      "remarks": "-",
+      "symbol": "JISLDVREQS",
+      "watp": "19.1"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "NITN KAPOOR AND HUF",
+      "date": "30-Oct-2026",
+      "name": "Jain Irrigation Systems L",
+      "qty": "9609714",
+      "remarks": "-",
+      "symbol": "JISLJALEQS",
+      "watp": "26.41"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "NITN  KAPOOR",
+      "date": "30-Oct-2026",
+      "name": "Jain Irrigation Systems L",
+      "qty": "11586211",
+      "remarks": "-",
+      "symbol": "JISLJALEQS",
+      "watp": "28.37"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "LAXMI TRADE SOLUTIONS",
+      "date": "30-Oct-2026",
+      "name": "Jain Irrigation Systems L",
+      "qty": "6000894",
+      "remarks": "-",
+      "symbol": "JISLJALEQS",
+      "watp": "27.86"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "MANSI SHARE AND STOCK BROKING PRIVATE LIMITED",
+      "date": "30-Oct-2026",
+      "name": "Jain Irrigation Systems L",
+      "qty": "4567654",
+      "remarks": "-",
+      "symbol": "JISLJALEQS",
+      "watp": "28.5"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "BHAVISHYA ECOMMERCE PRIVATE LIMITED",
+      "date": "30-Oct-2026",
+      "name": "Kshitij Polyline Limited",
+      "qty": "1500000",
+      "remarks": "-",
+      "symbol": "KSHITIJPOL",
+      "watp": "3.09"
+    },
+    {
+      "buySell": "BUY",
+      "clientName": "SMALLCAP WORLD FUND INC",
+      "date": "30-Oct-2026",
+      "name": "Sri Lotus Devlprs N Rty L",
+      "qty": "14140027",
+      "remarks": "-",
+      "symbol": "LOTUSDEV",
+      "watp": "240"
+    }
+  ],
+  "sentiment": "STRONG_BULLISH"
+}

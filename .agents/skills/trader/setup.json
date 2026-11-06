@@ -1,0 +1,13 @@
+{
+  "symbol": "TCS.NS",
+  "status": "TRIGGERED",
+  "direction": "LONG",
+  "entry_price": 2538.5,
+  "trigger_time": "09:40",
+  "orb_high": 2537.0,
+  "orb_low": 2514.7,
+  "orb_midpoint": 2525.85,
+  "vwap": 2523.25,
+  "vwap_confirmed": true,
+  "volume_confirmed": true
+}

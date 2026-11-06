@@ -14,6 +14,9 @@ from backend.app.config import get_settings
 
 settings = get_settings()
 
+_redis_offline = False
+_last_redis_check = 0.0
+
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """
@@ -25,8 +28,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     EXEMPT_PATHS = {"/health", "/docs", "/openapi.json", "/redoc"}
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        global _redis_offline, _last_redis_check
         # Skip exempt paths
         if request.url.path in self.EXEMPT_PATHS:
+            return await call_next(request)  # type: ignore
+
+        now = time.time()
+        # Fast path if Redis is known to be offline
+        if _redis_offline and (now - _last_redis_check < 60.0):
             return await call_next(request)  # type: ignore
 
         # Get client identifier
@@ -36,10 +45,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             # Import here to avoid circular imports and allow graceful degradation
             import redis.asyncio as aioredis
 
-            redis_client = aioredis.from_url(settings.redis_url, decode_responses=True)
+            redis_client = aioredis.from_url(
+                settings.redis_url,
+                decode_responses=True,
+                socket_connect_timeout=0.25,
+                socket_timeout=0.25,
+            )
 
             key = f"rate_limit:{client_ip}"
-            current_time = int(time.time())
+            current_time = int(now)
             window_start = current_time - 60  # 1-minute sliding window
 
             async with redis_client.pipeline(transaction=True) as pipe:
@@ -54,6 +68,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 results = await pipe.execute()
 
             request_count = results[1]
+            _redis_offline = False
 
             if request_count >= settings.rate_limit_per_minute:
                 return JSONResponse(
@@ -77,5 +92,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return response  # type: ignore
 
         except Exception:
-            # Redis unavailable — fail open (permissive)
+            # Redis unavailable — fail open (permissive) and remember for 60s
+            _redis_offline = True
+            _last_redis_check = now
+            return await call_next(request)  # type: ignore
             return await call_next(request)  # type: ignore

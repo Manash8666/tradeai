@@ -1,0 +1,190 @@
+[
+  {
+    "symbol": "ADANIPOWER.NS",
+    "last_close": 195.35,
+    "change_pct": 3.36,
+    "volume": 15386412,
+    "sma20": 191.03,
+    "rsi": 51.8,
+    "setups": [
+      "reclaim_sma20"
+    ]
+  },
+  {
+    "symbol": "AMBUJACEM.NS",
+    "last_close": 360.2,
+    "change_pct": 3.49,
+    "volume": 5427510,
+    "sma20": 355.5,
+    "rsi": 47.6,
+    "setups": [
+      "reclaim_sma20"
+    ]
+  },
+  {
+    "symbol": "APOLLOHOSP.NS",
+    "last_close": 8459.0,
+    "change_pct": 0.13,
+    "volume": 512629,
+    "sma20": 7913.68,
+    "rsi": 59.9,
+    "setups": [
+      "breakout_20d"
+    ]
+  },
+  {
+    "symbol": "ASIANPAINT.NS",
+    "last_close": 2344.3,
+    "change_pct": 1.05,
+    "volume": 789841,
+    "sma20": 2331.92,
+    "rsi": 46.8,
+    "setups": [
+      "reclaim_sma20"
+    ]
+  },
+  {
+    "symbol": "BAJFINANCE.NS",
+    "last_close": 959.4,
+    "change_pct": 2.16,
+    "volume": 6644762,
+    "sma20": 949.85,
+    "rsi": 48.8,
+    "setups": [
+      "reclaim_sma20"
+    ]
+  },
+  {
+    "symbol": "BANKBARODA.NS",
+    "last_close": 245.16,
+    "change_pct": 2.75,
+    "volume": 17107150,
+    "sma20": 234.84,
+    "rsi": 61.3,
+    "setups": [
+      "breakout_20d"
+    ]
+  },
+  {
+    "symbol": "BEL.NS",
+    "last_close": 376.5,
+    "change_pct": 1.78,
+    "volume": 13873384,
+    "sma20": 373.26,
+    "rsi": 49.5,
+    "setups": [
+      "reclaim_sma20"
+    ]
+  },
+  {
+    "symbol": "BPCL.NS",
+    "last_close": 293.05,
+    "change_pct": 2.86,
+    "volume": 3808029,
+    "sma20": 290.4,
+    "rsi": 48.7,
+    "setups": [
+      "reclaim_sma20"
+    ]
+  },
+  {
+    "symbol": "BHARTIARTL.NS",
+    "last_close": 1989.9,
+    "change_pct": 0.82,
+    "volume": 6839242,
+    "sma20": 1875.34,
+    "rsi": 66.9,
+    "setups": [
+      "breakout_20d"
+    ]
+  },
+  {
+    "symbol": "BOSCHLTD.NS",
+    "last_close": 48100.0,
+    "change_pct": 1.91,
+    "volume": 20407,
+    "sma20": 45249.5,
+    "rsi": 63.0,
+    "setups": [
+      "breakout_20d"
+    ]
+  },
+  {
+    "symbol": "CANBK.NS",
+    "last_close": 119.14,
+    "change_pct": 1.36,
+    "volume": 14424501,
+    "sma20": 119.01,
+    "rsi": 48.2,
+    "setups": [
+      "reclaim_sma20"
+    ]
+  },
+  {
+    "symbol": "CHOLAFIN.NS",
+    "last_close": 1624.4,
+    "change_pct": 2.42,
+    "volume": 1352195,
+    "sma20": 1559.59,
+    "rsi": 52.9,
+    "setups": [
+      "breakout_20d"
+    ]
+  },
+  {
+    "symbol": "CIPLA.NS",
+    "last_close": 1387.0,
+    "change_pct": 0.59,
+    "volume": 1377241,
+    "sma20": 1336.04,
+    "rsi": 61.0,
+    "setups": [
+      "breakout_20d"
+    ]
+  },
+  {
+    "symbol": "COALINDIA.NS",
+    "last_close": 408.0,
+    "change_pct": 4.88,
+    "volume": 12298905,
+    "sma20": 407.1,
+    "rsi": 50.2,
+    "setups": [
+      "reclaim_sma20"
+    ]
+  },
+  {
+    "symbol": "DLF.NS",
+    "last_close": 701.0,
+    "change_pct": 1.37,
+    "volume": 2432685,
+    "sma20": 667.57,
+    "rsi": 63.5,
+    "setups": [
+      "breakout_20d"
+    ]
+  },
+  {
+    "symbol": "DIVISLAB.NS",
+    "last_close": 9945.5,
+    "change_pct": 1.69,
+    "volume": 914466,
+    "sma20": 9341.8,
+    "rsi": 67.2,
+    "setups": [
+      "breakout_20d"
+    ]
+  },
+  {
+    "symbol": "GAIL.NS",
+    "last_close": 177.0,
+    "change_pct": 5.41,
+    "volume": 13411929,
+    "sma20": 168.0,
+    "rsi": 63.1,
+    "setups": [
+      "breakout_20d",
+      "reclaim_sma20"
+    ]
+  }
+]

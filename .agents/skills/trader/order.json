@@ -1,0 +1,15 @@
+{
+  "symbol": "RELIANCE.NS",
+  "direction": "LONG",
+  "product_type": "MIS (Intraday)",
+  "quantity": 175,
+  "entry_price": 1234.5,
+  "stop_loss": 1223.1,
+  "target": 1251.6,
+  "total_value_inr": 216037.5,
+  "margin_required_inr": 43207.5,
+  "max_risk_inr": 1995.0,
+  "potential_profit_inr": 2992.5,
+  "capital_inr": 50000.0,
+  "margin_utilization_pct": 86.41
+}
